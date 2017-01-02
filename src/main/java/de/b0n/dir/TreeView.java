@@ -62,7 +62,7 @@ public class TreeView extends JPanel {
 			
 			if (iterator.hasNext()) {
 				File file = iterator.next();
-				master = new DefaultMutableTreeNode(file.getAbsolutePath() + " Größe: " + (file.length()/1024) + "kB");
+				master = new DefaultMutableTreeNode(file.getAbsolutePath() + " GrÃ¶ÃŸe: " + (file.length()/1024) + "kB");
 				treeModel.insertNodeInto(master, top, top.getChildCount());
 			}
 	
