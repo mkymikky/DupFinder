@@ -16,7 +16,7 @@ import static org.junit.Assert.*;
  */
 public class FileStreamTest {
 
-    protected File simpleTextfile=null;
+    protected File simpleTextfile = null;
 
     @Before
     public void setUp() {
@@ -44,22 +44,22 @@ public class FileStreamTest {
     public void createInstanceFromInvalidFile() {
         final File invalidFile = new File("src/test/resources/Testxxx1.txt");
         assertFalse(invalidFile.exists());
-        try{
+        try {
             final FileStream stream = new FileStream(invalidFile);
             stream.getStream();
             fail();
-        }catch(IllegalStateException ex){
+        } catch (IllegalStateException ex) {
             assertNotNull(ex);
         }
     }
 
     @Test
     public void createInstanceFromNull() {
-        try{
+        try {
             final FileStream stream = new FileStream(null);
             stream.getStream();
             fail();
-        }catch(NullPointerException ex){
+        } catch (NullPointerException ex) {
             assertNotNull(ex);
         }
     }
@@ -69,10 +69,10 @@ public class FileStreamTest {
     public void getValidStreamWithValidFile() throws IOException {
         final FileStream fileStream = new FileStream(this.simpleTextfile);
         assertNotNull(fileStream);
-        final InputStream stream=fileStream.getStream();
-        assertEquals("wrong file size",91,stream.available());
+        final InputStream stream = fileStream.getStream();
+        assertEquals("wrong file size", 91, stream.available());
         // duplicate call for else branch
-        assertSame(stream,fileStream.getStream());
+        assertSame(stream, fileStream.getStream());
         fileStream.close();
     }
 
@@ -80,8 +80,26 @@ public class FileStreamTest {
     public void getValidFileWithValidFile() throws IOException {
         final FileStream fileStream = new FileStream(this.simpleTextfile);
         assertNotNull(fileStream);
-        assertEquals("wrong file size",91,fileStream.getFile().length());
+        assertEquals("wrong file size", 91, fileStream.getFile().length());
         fileStream.close();
+    }
+
+    @Test
+    public void handleExceptionIfDoubleClose() {
+        final FileStream fileStream = new FileStream(this.simpleTextfile);
+        assertNotNull(fileStream);
+        final InputStream stream = fileStream.getStream();
+        assertNotNull(stream);
+        try {
+            stream.close();
+        } catch (IOException e) {
+            fail();
+        }
+        assertNotNull(fileStream.getStream());
+        fileStream.close();
+        assertNotNull(fileStream.getStream());
+        //TODO ewarten würde ich eigentlich null
+        //assertNull(fileStream.getStream());
     }
 
 }
