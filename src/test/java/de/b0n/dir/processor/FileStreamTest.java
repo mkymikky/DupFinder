@@ -84,6 +84,10 @@ public class FileStreamTest {
         fileStream.close();
     }
 
+    /**
+     * TODO Der Test muss noch verbessert werden
+     * um die IO Exception zu provozieren.
+     */
     @Test
     public void handleExceptionIfDoubleClose() {
         final FileStream fileStream = new FileStream(this.simpleTextfile);
@@ -91,6 +95,7 @@ public class FileStreamTest {
         final InputStream stream = fileStream.getStream();
         assertNotNull(stream);
         try {
+            stream.mark(0);
             stream.close();
         } catch (IOException e) {
             fail();
