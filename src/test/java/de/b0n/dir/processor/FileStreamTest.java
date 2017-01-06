@@ -44,4 +44,11 @@ public class FileStreamTest {
         assertEquals("wrong file size",91,fileStream.getStream().available());
     }
 
+    @Test
+    public void getValidFileWithValidFile() throws IOException {
+        final FileStream fileStream = new FileStream(this.simpleTextfile);
+        assertNotNull(fileStream);
+        assertEquals("wrong file size",91,fileStream.getFile().length());
+    }
+
 }
