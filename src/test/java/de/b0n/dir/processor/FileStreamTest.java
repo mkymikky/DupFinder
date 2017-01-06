@@ -6,6 +6,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
 
@@ -35,13 +37,43 @@ public class FileStreamTest {
         final FileStream stream = new FileStream(validFile);
         assertNotNull(stream);
         assertSame(validFile, stream.getFile());
+        stream.close();
     }
+
+    @Test
+    public void createInstanceFromInvalidFile() {
+        final File invalidFile = new File("src/test/resources/Testxxx1.txt");
+        assertFalse(invalidFile.exists());
+        try{
+            final FileStream stream = new FileStream(invalidFile);
+            stream.getStream();
+            fail();
+        }catch(IllegalStateException ex){
+            assertNotNull(ex);
+        }
+    }
+
+    @Test
+    public void createInstanceFromNull() {
+        try{
+            final FileStream stream = new FileStream(null);
+            stream.getStream();
+            fail();
+        }catch(NullPointerException ex){
+            assertNotNull(ex);
+        }
+    }
+
 
     @Test
     public void getValidStreamWithValidFile() throws IOException {
         final FileStream fileStream = new FileStream(this.simpleTextfile);
         assertNotNull(fileStream);
-        assertEquals("wrong file size",91,fileStream.getStream().available());
+        final InputStream stream=fileStream.getStream();
+        assertEquals("wrong file size",91,stream.available());
+        // duplicate call for else branch
+        assertSame(stream,fileStream.getStream());
+        fileStream.close();
     }
 
     @Test
@@ -49,6 +81,7 @@ public class FileStreamTest {
         final FileStream fileStream = new FileStream(this.simpleTextfile);
         assertNotNull(fileStream);
         assertEquals("wrong file size",91,fileStream.getFile().length());
+        fileStream.close();
     }
 
 }
