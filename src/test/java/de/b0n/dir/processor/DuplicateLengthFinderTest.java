@@ -29,6 +29,24 @@ public class DuplicateLengthFinderTest {
     }
 
     @Test
+    public void createValidInstanceWithInvalidFolderParameter() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File folder = new File("src/test/resourcesInvalid/");
+        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        assertNotNull(result);
+        assertEquals("falsche Anzahl an Duplikaten bestimmt",0,result.size());
+    }
+
+    @Test
+    public void createValidInstanceWithAFileAnstaedOfFolderParameter() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File folder = new File("src/test/resources/Test1.txt");
+        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        assertNotNull(result);
+        assertEquals("falsche Anzahl an Duplikaten bestimmt",0,result.size());
+    }
+
+    @Test
     public void createValidInstanceWithValidParameters() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File("src/test/resources/");
