@@ -37,7 +37,7 @@ public class DuplicateLengthFinder implements Callable<Queue<FileSize>>  {
 
 	private void containsElementsCheck() {
 		if (folder.list() == null) {
-			throw new IllegalArgumentException("Pfad enth‰lt keine Elemente: " + folder.getAbsolutePath());
+			throw new IllegalArgumentException("Pfad enth√§lt keine Elemente: " + folder.getAbsolutePath());
 		}
 	}
 
