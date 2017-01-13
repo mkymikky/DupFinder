@@ -15,12 +15,15 @@ import de.b0n.dir.processor.DuplicateLengthFinder;
 
 public class DupFinder {
 
+	private static final String MESSAGE_NO_PARAM = "FEHLER: Parameter <Verzeichnis> fehlt\r\n usage: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
+
 	private static TreeView treeView = new TreeView();
 
 	public static void main(String[] args) {
 		// Lese Root-Verzeichnis aus Argumenten
 		if (args.length < 1 || args[0] == null) {
-			// exit(1): Kein Parameter �bergeben
+			// exit(1): Kein Parameter übergeben
+			System.err.println(MESSAGE_NO_PARAM);
 			System.exit(1);
 		}
 		
