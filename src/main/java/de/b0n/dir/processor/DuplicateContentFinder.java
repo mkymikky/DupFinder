@@ -1,7 +1,6 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -43,7 +42,7 @@ public class DuplicateContentFinder implements Runnable {
 				for (FileStream currentFileStream : originalFileStreams) {
 					int read;
 					try {
-						read = currentFileStream.getStream().read();
+						read = currentFileStream.read();
 					} catch (IllegalStateException e) {
 						System.out.println(e.getMessage());
 						continue;
@@ -100,17 +99,10 @@ public class DuplicateContentFinder implements Runnable {
 			if (!groupedListOfFileStreams.isEmpty()) {
 				throw new IllegalStateException("Es wurden potentielle Dubletten unbearbeitet gelassen!");
 			}
-			
-		} catch (IOException e) {
-			handleException(e);
 		} finally {
 			for (Integer groupedQueueOfFileStreamsKey : groupedListOfFileStreams.keySet()) {
 				for (FileStream fileStream : groupedListOfFileStreams.get(groupedQueueOfFileStreamsKey)) {
-					try {
-						fileStream.getStream().close();
-					} catch (IOException e) {
-						handleException(e);
-					}
+					fileStream.close();
 				}
 			}
 		}
