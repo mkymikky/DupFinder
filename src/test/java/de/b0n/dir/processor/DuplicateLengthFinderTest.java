@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNotNull;
  */
 public class DuplicateLengthFinderTest {
 
-	private static final String PATH_RESOURCES = "src/test/resources/";
     private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_INVALID_FOLDER = "src/test/resourcesInvalid/";
