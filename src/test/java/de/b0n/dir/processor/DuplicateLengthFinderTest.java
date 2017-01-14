@@ -17,6 +17,7 @@ import static org.junit.Assert.assertNotNull;
  */
 public class DuplicateLengthFinderTest {
 
+	private static final String PATH_RESOURCES = "src/test/resources/";
     private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_INVALID_FOLDER = "src/test/resourcesInvalid/";
@@ -74,9 +75,12 @@ public class DuplicateLengthFinderTest {
     public void scanEmptyFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_EMPTY_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
-        assertNotNull(result);
-        assertEquals(0, result.size());
+        if (folder.mkdir()) {
+        	final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        	assertNotNull(result);
+        	assertEquals(0, result.size());
+        	folder.delete();
+        }
     }
 
     @Test
