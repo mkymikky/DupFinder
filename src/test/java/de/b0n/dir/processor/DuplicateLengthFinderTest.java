@@ -11,14 +11,22 @@ import java.util.concurrent.Executors;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Created by huluvu424242 on 07.01.17.
  */
 public class DuplicateLengthFinderTest {
 
-    @Before
+    private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
+	private static final String PATH_FILE = "src/test/resources/Test1.txt";
+	private static final String PATH_INVALID_FOLDER = "src/test/resourcesInvalid/";
+	private static final String PATH_NO_SAME_SIZE_FOLDER = "src/test/resources/noDuplicates";
+	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyFolder";
+    private static final String PATH_PLENTY_SAME_SIZE_FOLDER = "src/test/resources/";
+	private static final String PATH_SAME_SIZE_IN_FLAT_FOLDER = "src/test/resources/folderOnlyFolder/flatDuplicateTree";
+	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/folderOnlyFolder";
+
+	@Before
     public void setUp() {
 
     }
@@ -28,60 +36,76 @@ public class DuplicateLengthFinderTest {
 
     }
 
-    @Test
-    public void createValidInstanceWithInvalidFolderParameter() {
+    @Test(expected=IllegalArgumentException.class)
+    public void scanInvalidFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resourcesInvalid/");
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
-        assertNotNull(result);
-        assertEquals("falsche Anzahl an Duplikaten bestimmt",0,result.size());
+        final File folder = new File(PATH_INVALID_FOLDER);
+        DuplicateLengthFinder.getResult(threadPool, folder);
+    }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void scanFile() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File folder = new File(PATH_FILE);
+        DuplicateLengthFinder.getResult(threadPool, folder);
     }
 
     @Test
-    public void createValidInstanceWithAFileAnstaedOfFolderParameter() {
+    public void scanFlatFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resources/Test1.txt");
+        final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
         final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
-        assertEquals("falsche Anzahl an Duplikaten bestimmt",0,result.size());
+        assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.element().size());
     }
 
     @Test
-    public void createValidInstanceWithValidParameters() {
+    public void scanFolderOnlyFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resources/");
+        final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
         final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
-        assertEquals("falsche Anzahl an Duplikaten bestimmt",1,result.size());
-        assertEquals("falsche Anzahl von Test1.txt Vorkommen bestimmt",4,result.element().size());
+        assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.element().size());
     }
 
     @Test
-    public void scanForDuplicateGivenEmptyFolder() {
+    public void scanEmptyFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resources/emptyFolder");
+        final File folder = new File(PATH_EMPTY_FOLDER);
         final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
-        assertEquals(0,result.size());
+        assertEquals(0, result.size());
     }
 
     @Test
-    public void scanForDuplicateGivenDuplicate0() {
+    public void scanNoDuplicates() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resources/duplicate0");
+        final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
         final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
-        assertEquals(0,result.size());
+        assertEquals(0, result.size());
     }
 
     @Test
-    public void scanForDuplicateGivenDuplicate1() {
+    public void scanDuplicatesInTree() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
-        final File folder = new File("src/test/resources/duplicate1");
+        final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
         final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals(1,result.size());
         assertEquals(2,result.element().size());
     }
 
+    @Test
+    public void scanDuplicatesInBiggerTree() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
+        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        assertNotNull(result);
+        assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.size());
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.poll().size());
+        assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, result.poll().size());
+    }
 }
