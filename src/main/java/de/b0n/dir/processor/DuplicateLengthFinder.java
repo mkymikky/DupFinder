@@ -54,13 +54,20 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 	public Map<Long, Queue<File>> call() throws Exception {
 		Queue<Future<Map<Long, Queue<File>>>> futures = new ConcurrentLinkedQueue<Future<Map<Long, Queue<File>>>>();
 
+		if (folder.list() == null) {
+			System.out.println("Could not read content of folder: " + folder.getAbsolutePath());
+			return result;
+		}
+
 		for (String fileName : folder.list()) {
 			File file = new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName);
+
 			if (file.isDirectory()) {
 				try {
 					futures.add(threadPool.submit(new DuplicateLengthFinder(threadPool, file, result)));
 				} catch (IllegalArgumentException e) {
-					// Given Folder is invalid, continue with next
+					System.err.println("Given Folder is invalid, continue with next: " + file.getAbsolutePath());
+					continue;
 				}
 			}
 
