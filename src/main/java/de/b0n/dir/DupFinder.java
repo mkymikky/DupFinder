@@ -40,7 +40,8 @@ public class DupFinder {
 		ExecutorService threadPool = Executors.newWorkStealingPool();
 		Queue<Queue<File>> duplicatesByLength=null;
 		try {
-			duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, new File(args[0])));
+            final File folder = new File(args[0] + System.getProperty("file.separator"));
+            duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, folder));
 		}catch(IllegalArgumentException ex) {
 			System.err.println(ex.getMessage());
 			System.exit(1);

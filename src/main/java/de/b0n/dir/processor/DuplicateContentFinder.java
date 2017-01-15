@@ -14,6 +14,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class DuplicateContentFinder implements Runnable {
+	private static final int FINISHED = Integer.valueOf(-1);
+	private static final int INPUT = Integer.valueOf(-2);
+	private static final int FAILING = Integer.valueOf(-3);
 
 	private final ExecutorService threadPool;
 	Map<Integer, List<FileStream>> groupedListOfFileStreams = new HashMap<Integer, List<FileStream>>();
@@ -25,7 +28,7 @@ public class DuplicateContentFinder implements Runnable {
 	
 	private DuplicateContentFinder(ExecutorService threadPool, List<FileStream> fileStreams, Queue<Queue<File>> result) {
 		this.threadPool = threadPool;
-		groupedListOfFileStreams.put(Integer.valueOf(0), fileStreams);
+		groupedListOfFileStreams.put(INPUT, fileStreams);
 		this.result = result;
 	}
 
@@ -35,76 +38,50 @@ public class DuplicateContentFinder implements Runnable {
 		// Open Streams & wrap in BufferedInputStream
 		
 		try {
-			while (groupedListOfFileStreams.size() == 1) {
-				// Read bytewise and compare
-				List<FileStream> originalFileStreams = getFirstElement(groupedListOfFileStreams);
-				groupedListOfFileStreams.clear();
-				for (FileStream currentFileStream : originalFileStreams) {
-					int read;
-					try {
-						read = currentFileStream.read();
-					} catch (IllegalStateException e) {
-						System.out.println(e.getMessage());
-						continue;
-					}
-										
-					List<FileStream> currentFileStreams = groupedListOfFileStreams.get(read);
-					if (currentFileStreams == null) {
-						currentFileStreams = new ArrayList<FileStream>();
-						groupedListOfFileStreams.put(read, currentFileStreams);
-					}
-					currentFileStreams.add(currentFileStream);
-				}
-
-				// if group consists of only one file, discard as unique
-				List<Integer> uniqueIds = new ArrayList<Integer>();
-				for (Integer groupedQueueOfFileStreamsKey : groupedListOfFileStreams.keySet()) {
-					List<FileStream> fileStreams = groupedListOfFileStreams.get(groupedQueueOfFileStreamsKey);
-					if (fileStreams.size() == 1) {
-						closeAll(fileStreams);
-						uniqueIds.add(groupedQueueOfFileStreamsKey);
-					}
-				}
-				for (Integer uniqueId : uniqueIds) {
-					groupedListOfFileStreams.remove(uniqueId);
-				}
-
-				// Finished Streams
-				if (groupedListOfFileStreams.containsKey(-1)) {
-					List<FileStream> fileStreams = groupedListOfFileStreams.get(-1);
-						//System.out.println("Duplikate gefunden zu " + fileStreams.iterator().next().getFile().getAbsolutePath());
-						result.add(extractFiles(fileStreams));
-					closeAll(fileStreams);
-					groupedListOfFileStreams.remove(-1);						
+			while (groupedListOfFileStreams.containsKey(INPUT)) {
+				sortFilesByByte(groupedListOfFileStreams, groupedListOfFileStreams.get(INPUT));
+				
+				// Failing Streams
+				if (groupedListOfFileStreams.containsKey(FAILING)) {
+					closeAll(groupedListOfFileStreams.get(FAILING));
+					groupedListOfFileStreams.remove(FAILING);
 				}
 				
-				// differences: take all files with same input like first to continue
-				//		continue until none rest: take group of all files like first of rest to continue in new Thread
-				if (groupedListOfFileStreams.size() > 1) {
-					Iterator<Integer> iteratorOfFileStreamKeys = groupedListOfFileStreams.keySet().iterator();
-					iteratorOfFileStreamKeys.next();
-					List<Integer> extractedIds = new ArrayList<Integer>();
-					while (iteratorOfFileStreamKeys.hasNext()) {
-						Integer currentId = iteratorOfFileStreamKeys.next();
-						extractedIds.add(currentId);
-						futures.add(threadPool.submit(new DuplicateContentFinder(threadPool, groupedListOfFileStreams.get(currentId), result)));
-					}
-					
-					for (Integer extractedId : extractedIds) {
-						groupedListOfFileStreams.remove(extractedId);
-					}
-				}
-			}
+				// Unique Streams
+				discardSingleFileGroups(groupedListOfFileStreams);
 
-			if (!groupedListOfFileStreams.isEmpty()) {
-				throw new IllegalStateException("Es wurden potentielle Dubletten unbearbeitet gelassen!");
-			}
-		} finally {
-			for (Integer groupedQueueOfFileStreamsKey : groupedListOfFileStreams.keySet()) {
-				for (FileStream fileStream : groupedListOfFileStreams.get(groupedQueueOfFileStreamsKey)) {
-					fileStream.close();
+				// Finished Streams
+				if (groupedListOfFileStreams.containsKey(FINISHED)) {
+					result.add(extractFiles(groupedListOfFileStreams.get(FINISHED)));
+					closeAll(groupedListOfFileStreams.get(FINISHED));
+					groupedListOfFileStreams.remove(FINISHED);						
+				}
+				
+				// Prepare for next iteration
+				Iterator<List<FileStream>> iterator = groupedListOfFileStreams.values().iterator();
+				List<FileStream> nextInput = null;
+				if (iterator.hasNext()) {
+					nextInput = iterator.next();
+				}
+				
+				// Outsource other groups
+				while (iterator.hasNext()) {
+					futures.add(threadPool.submit(new DuplicateContentFinder(threadPool, iterator.next(), result)));
+				}
+				
+				// Continue preparation for next iteration
+				groupedListOfFileStreams.clear();
+				if (nextInput != null) {
+					groupedListOfFileStreams.put(INPUT, nextInput);
 				}
 			}
+		} catch(Exception e) {
+			for (List<FileStream> fileStreams : groupedListOfFileStreams.values()) {
+				closeAll(fileStreams);
+			}
+			throw e;
+		} finally {
+			
 		}
 
 		for (Future<?> future : futures) {
@@ -116,6 +93,44 @@ public class DuplicateContentFinder implements Runnable {
 			}
 		}
 	}
+
+	private void discardSingleFileGroups(Map<Integer, List<FileStream>> groups) {
+		List<Integer> uniqueIds = new ArrayList<Integer>();
+		for (Integer fileStreamsKey : groups.keySet()) {
+			List<FileStream> fileStreams = groups.get(fileStreamsKey);
+			if (fileStreams.size() == 1) {
+				closeAll(fileStreams);
+				uniqueIds.add(fileStreamsKey);
+			}
+		}
+		for (Integer uniqueId : uniqueIds) {
+			groups.remove(uniqueId);
+		}
+	}
+
+	private void sortFilesByByte(Map<Integer, List<FileStream>> sortFilesMap, List<FileStream> sortFiles) {
+		for (FileStream sortFile : sortFiles) {
+			try {
+				insertFileToKey(sortFilesMap, sortFile, sortFile.read());
+			} catch (IllegalStateException e) {
+				System.out.println(e.getMessage());
+				insertFileToKey(sortFilesMap, sortFile, FAILING);
+			}								
+		}
+		sortFilesMap.remove(INPUT);
+	}
+
+	private List<FileStream> insertFileToKey(Map<Integer, List<FileStream>> sortFilesMap, FileStream sortFile,
+			int key) {
+		List<FileStream> currentFileStreams = sortFilesMap.get(key);
+		if (currentFileStreams == null) {
+			currentFileStreams = new ArrayList<FileStream>();
+			sortFilesMap.put(key, currentFileStreams);
+		}
+		currentFileStreams.add(sortFile);
+		return currentFileStreams;
+	}
+
 	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final Queue<Queue<File>> input) {
 		return getResult(threadPool, input, null);
 	}
@@ -133,7 +148,6 @@ public class DuplicateContentFinder implements Runnable {
 		}
 	
 		Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
-		
 		for (Queue<File> files : input) {
 			if (files.size() > 1) {
 				futures.add(threadPool.submit(new DuplicateContentFinder(threadPool, files, result)));
@@ -148,10 +162,6 @@ public class DuplicateContentFinder implements Runnable {
 			}
 		}
 		return result;
-	}
-
-	private List<FileStream> getFirstElement(Map<Integer, List<FileStream>> map) {
-		return map.get(map.keySet().iterator().next());
 	}
 
 	private static List<FileStream> repack(Collection<File> files) {

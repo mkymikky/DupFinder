@@ -3,7 +3,6 @@ package de.b0n.dir.processor;
 import java.io.File;
 import java.util.Map;
 import java.util.Queue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -17,7 +16,7 @@ import java.util.concurrent.Future;
  * @author Claus
  *
  */
-public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
+public class DuplicateLengthFinder implements Runnable {
 
 	private final ExecutorService threadPool;
 	private final File folder;
@@ -51,12 +50,12 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 	 * Liefert das Gesamtergebnis zurück.
 	 */
 	@Override
-	public Map<Long, Queue<File>> call() throws Exception {
-		Queue<Future<Map<Long, Queue<File>>>> futures = new ConcurrentLinkedQueue<Future<Map<Long, Queue<File>>>>();
+	public void run() {
+		Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
 
 		if (folder.list() == null) {
 			System.out.println("Could not read content of folder: " + folder.getAbsolutePath());
-			return result;
+			return;
 		}
 
 		for (String fileName : folder.list()) {
@@ -85,7 +84,7 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 			}
 		}
 
-		return result;
+		return;
 	}
 
 	/**
@@ -173,16 +172,15 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 			result = new ConcurrentHashMap<Long, Queue<File>>();
 		}
 
-		Future<Map<Long, Queue<File>>> future = threadPool.submit(new DuplicateLengthFinder(threadPool, folder, result));
+		Future<?> future = threadPool.submit(new DuplicateLengthFinder(threadPool, folder, result));
 
-		Map<Long, Queue<File>> filesizeMap = null;
 		try {
-			filesizeMap = future.get();
+			future.get();
 		} catch (InterruptedException | ExecutionException e) {
 			// This is a critical problem, nothing to recover, abort
 			throw new IllegalStateException("Unrecoverable problem, aborting file search", e);
 		}
 
-		return filterUniqueSizes(filesizeMap);
+		return filterUniqueSizes(result);
 	}
 }
