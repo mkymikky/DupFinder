@@ -111,7 +111,8 @@ public class DuplicateContentFinder implements Runnable {
 			try {
 				future.get();
 			} catch (InterruptedException | ExecutionException e) {
-				handleException(e);
+				// This is a major problem, notify user and try to recover
+				e.printStackTrace();
 			}
 		}
 	}
@@ -142,7 +143,8 @@ public class DuplicateContentFinder implements Runnable {
 			try {
 				future.get();
 			} catch (InterruptedException | ExecutionException e) {
-				handleException(e);
+				// This is a critical problem, nothing to recover, abort
+				throw new IllegalStateException("Unrecoverable problem, aborting file search", e);
 			}
 		}
 		return result;
@@ -173,9 +175,5 @@ public class DuplicateContentFinder implements Runnable {
 		for (FileStream fileStream : fileStreams) {
 			fileStream.close();
 		}
-	}
-	
-	private static void handleException(Exception e) {
-		e.printStackTrace();
 	}
 }

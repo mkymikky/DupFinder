@@ -1,6 +1,7 @@
 package de.b0n.dir;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +38,7 @@ public class DupFinder {
 		
 		long startTime = System.nanoTime();
 		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Queue<Queue<File>> duplicatesByLength = DuplicateLengthFinder.getResult(threadPool, new File(args[0]));
+		Queue<Queue<File>> duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, new File(args[0])));
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
 		Future<?> updater = threadPool.submit(treeView.new Updater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
@@ -46,6 +47,14 @@ public class DupFinder {
 		System.out.println("Zeit in Sekunden zum Finden der Duplikate: " + ((duplicateTime - startTime)/1000000000));
 	}
     
+	private static Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
+		Queue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
+		for (Long key : input.keySet()) {
+			result.add(input.get(key));
+		}
+		return result;
+	}
+
 	/**
 	* Create the GUI and show it.  For thread safety,
 	* this method should be invoked from the

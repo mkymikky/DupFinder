@@ -5,6 +5,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -71,20 +73,20 @@ public class DuplicateLengthFinderTest {
     public void scanFlatFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
-        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.element().size());
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.values().iterator().next().size());
     }
 
     @Test
     public void scanFolderOnlyFolder() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
-        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.element().size());
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.values().iterator().next().size());
     }
 
     @Test
@@ -92,7 +94,7 @@ public class DuplicateLengthFinderTest {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_EMPTY_FOLDER);
         if (folder.mkdir()) {
-        	final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        	final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         	assertNotNull(result);
         	assertEquals(0, result.size());
         	folder.delete();
@@ -103,7 +105,7 @@ public class DuplicateLengthFinderTest {
     public void scanNoDuplicates() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals(0, result.size());
     }
@@ -112,20 +114,21 @@ public class DuplicateLengthFinderTest {
     public void scanDuplicatesInTree() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals(1,result.size());
-        assertEquals(2,result.element().size());
+        assertEquals(2,result.values().iterator().next().size());
     }
 
     @Test
     public void scanDuplicatesInBiggerTree() {
         final ExecutorService threadPool = Executors.newWorkStealingPool();
         final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-        final Queue<Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
+        final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(threadPool, folder);
         assertNotNull(result);
         assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.size());
-        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, result.poll().size());
-        assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, result.poll().size());
+        Iterator<Queue<File>> iterator = result.values().iterator();
+        assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, iterator.next().size());
+        assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, iterator.next().size());
     }
 }
