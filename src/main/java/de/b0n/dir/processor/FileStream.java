@@ -46,7 +46,7 @@ class FileStream {
 				stream = new BufferedInputStream(new FileInputStream(file));
 			} catch (FileNotFoundException e) {
 				this.close();
-				throw new IllegalStateException("Could not find designated File.", e);
+				throw new IllegalStateException("Could not open designated File: " + file.getAbsolutePath() + " Reason: " + e.getMessage(), e);
 			}
 		}
 		return stream;
@@ -77,7 +77,7 @@ class FileStream {
 			return getStream().read();
 		} catch (IOException e) {
 			this.close();
-			throw new IllegalStateException("Stream had Exception, closed.", e);
+			throw new IllegalStateException("Stream of " + file.getAbsolutePath() + " could not be read: " + e.getMessage(), e);
 		}
 	}
 }
