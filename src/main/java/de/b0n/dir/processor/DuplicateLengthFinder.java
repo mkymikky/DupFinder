@@ -30,13 +30,13 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 	 */
 	private DuplicateLengthFinder(final ExecutorService threadPool, final File folder, Map<Long, Queue<File>> result) {
 		if (!folder.exists()) {
-			throw new IllegalArgumentException("Not existing path: " + folder.getAbsolutePath());
+			throw new IllegalArgumentException("FEHLER: Parameter <Verzeichnis> existiert nicht: " + folder.getAbsolutePath());
 		}
 		if (!folder.isDirectory()) {
-			throw new IllegalArgumentException("Path is not a directory: " + folder.getAbsolutePath());
+			throw new IllegalArgumentException("FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: " + folder.getAbsolutePath());
 		}
 		if (!folder.canRead()) {
-			throw new IllegalArgumentException("Cannot read path: " + folder.getAbsolutePath());
+			throw new IllegalArgumentException("FEHLER: Parameter <Verzeichnis> ist nicht lesbar: " + folder.getAbsolutePath());
 		}
 
 		this.threadPool = threadPool;

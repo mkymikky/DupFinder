@@ -38,7 +38,13 @@ public class DupFinder {
 		
 		long startTime = System.nanoTime();
 		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Queue<Queue<File>> duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, new File(args[0])));
+		Queue<Queue<File>> duplicatesByLength=null;
+		try {
+			duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, new File(args[0])));
+		}catch(IllegalArgumentException ex) {
+			System.err.println(ex.getMessage());
+			System.exit(1);
+		}
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
 		Future<?> updater = threadPool.submit(treeView.new Updater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
