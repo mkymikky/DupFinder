@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class DuplicateContentFinder implements Runnable {
+	private static final int INPUT = Integer.valueOf(-2);
+	private static final int FAILING = Integer.valueOf(-3);
 
 	private final ExecutorService threadPool;
 	Map<Integer, List<FileStream>> groupedListOfFileStreams = new HashMap<Integer, List<FileStream>>();
@@ -25,7 +27,7 @@ public class DuplicateContentFinder implements Runnable {
 	
 	private DuplicateContentFinder(ExecutorService threadPool, List<FileStream> fileStreams, Queue<Queue<File>> result) {
 		this.threadPool = threadPool;
-		groupedListOfFileStreams.put(Integer.valueOf(0), fileStreams);
+		groupedListOfFileStreams.put(INPUT, fileStreams);
 		this.result = result;
 	}
 
