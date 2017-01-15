@@ -35,6 +35,23 @@ public class DuplicateLengthFinderTest {
     public void tearDown() {
 
     }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void noArguments() {
+    	DuplicateLengthFinder.getResult(null, null);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void noThreadPool() {
+        final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
+    	DuplicateLengthFinder.getResult(null, folder);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void noFolder() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+    	DuplicateLengthFinder.getResult(threadPool, null);
+    }
 
     @Test(expected=IllegalArgumentException.class)
     public void scanInvalidFolder() {

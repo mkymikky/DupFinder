@@ -140,6 +140,13 @@ public class DuplicateLengthFinder implements Callable<Map<Long, Queue<File>>> {
 	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
 	 */
 	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final File folder) {
+		if (threadPool == null) {
+			throw new IllegalArgumentException("threadPool may not be null.");
+		}
+		if (folder == null) {
+			throw new IllegalArgumentException("folder may not be null.");
+		}
+
 		Future<Map<Long, Queue<File>>> future = threadPool.submit(new DuplicateLengthFinder(threadPool, folder));
 
 		Map<Long, Queue<File>> filesizeMap = null;
