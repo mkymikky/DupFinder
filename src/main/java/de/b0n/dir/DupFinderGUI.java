@@ -63,9 +63,13 @@ public class DupFinderGUI {
         frame.setVisible(true);
     }
 
-    public boolean forceClose(){
-        // TODO Es kann sein, dass frame noch nicht gestartet wurde wegen hoher Last
-        // besser wäre irgendwas mit einem Future
+    public boolean forceClose() throws InterruptedException {
+        if(frame==null) {
+            // TODO Es kann sein, dass frame noch nicht gestartet wurde wegen hoher Last
+            // besser wäre irgendwas mit einem Future
+            Thread.yield();
+            Thread.sleep(1000);
+        }
         if(frame!=null){
             frame.dispose();
             return true;

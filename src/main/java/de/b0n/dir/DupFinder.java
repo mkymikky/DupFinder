@@ -40,8 +40,6 @@ public class DupFinder {
 
 		final DupFinderGUI gui = new DupFinderGUI();
 		gui.showView();
-		Thread.yield();
-		Thread.sleep(1000);
 		final DupFinder dupFinder = new DupFinder(gui.getTreeView());
 		try {
 			dupFinder.startSearching(folder);
