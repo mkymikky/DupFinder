@@ -24,18 +24,19 @@ public class DupFinderTest {
     String unreadableFolder;
 
     @Before
-    public void setUp(){
+    public void setUp() {
 
         // each OS must be add to supportedOS() too
-        if("Linux".equals(OS_NAME)) {
-            unreadableFolder="/root";
-        }else{
-            unreadableFolder=null;
+        if ("Linux".equals(OS_NAME)) {
+            unreadableFolder = "/root";
+        } else {
+            unreadableFolder = null;
         }
     }
 
     /**
      * OS currently supported by specific tests
+     *
      * @return
      */
     private boolean supportedOS() {
@@ -58,44 +59,34 @@ public class DupFinderTest {
 
     @Test(expected = IllegalArgumentException.class)
     @Ignore  //TODO Nullpointer gewollt?
-    public void nullArguments() {
+    public void nullArguments() throws InterruptedException {
         DupFinder.main(null);
     }
 
     @Test
     public void noArguments() throws IOException, InterruptedException {
-        final ProcessBuilder pb =
-                new ProcessBuilder("java", "de.b0n.dir.DupFinder", "abc");
-        final Map<String, String> env = pb.environment();
-        pb.directory(new File("target/classes"));
-        pb.redirectErrorStream(true);
-        final Process p = pb.start();
-        p.waitFor();
-        assertEquals(1, p.exitValue());
+        try {
+            DupFinder.main(new String[]{"abc"});
+            fail();
 
-        final StringWriter writer = new StringWriter();
-        copy(p.getInputStream(), writer);
-        final String errorMessage=writer.toString();
-        assertTrue(errorMessage.startsWith("FEHLER: Parameter <Verzeichnis> existiert nicht:"));
-
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> existiert nicht:"));
+        }catch (Throwable th){
+            throw th;
+        }
     }
 
     @Test
     public void noFolderArgument() throws IOException, InterruptedException {
-        final ProcessBuilder pb =
-                new ProcessBuilder("java", "de.b0n.dir.DupFinder", "../../pom.xml");
-        final Map<String, String> env = pb.environment();
-        pb.directory(new File("target/classes"));
-        pb.redirectErrorStream(true);
-        final Process p = pb.start();
-        p.waitFor();
-        assertEquals(1, p.exitValue());
+        try {
+            DupFinder.main(new String[]{"pom.xml"});
+            fail();
 
-        final StringWriter writer = new StringWriter();
-        copy(p.getInputStream(), writer);
-        final String errorMessage=writer.toString();
-        assertTrue(errorMessage.startsWith("FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis:"));
-
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis:"));
+        }catch (Throwable th){
+            throw th;
+        }
     }
 
     @Test
@@ -103,21 +94,14 @@ public class DupFinderTest {
         // conditional test
         assumeTrue(supportedOS());
 
-        final PipedInputStream inStream = new PipedInputStream();
-        final PipedOutputStream outStream = new PipedOutputStream(inStream);
-        final BufferedOutputStream bufOutStream = new BufferedOutputStream(outStream);
-        final PrintStream printStream = new PrintStream(bufOutStream);
-        System.setErr(printStream);
         try {
-            DupFinder.main(new String[]{"/root"});
+            DupFinder.main(new String[]{unreadableFolder});
             fail();
 
-        } catch (Exception ex) {
-
-            final StringWriter writer = new StringWriter();
-            copy(inStream, writer);
-            assertEquals(" ", writer.toString());
-            inStream.close();
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> ist nicht lesbar:"));
+        }catch (Throwable th){
+           throw th;
         }
 
     }

@@ -4,10 +4,13 @@ import de.b0n.dir.view.TreeView;
 
 import javax.swing.*;
 
+
 /**
  * Created by huluvu424242 on 16.01.17.
  */
 public class DupFinderGUI {
+
+    protected JFrame frame;
 
     protected TreeView treeView = new TreeView();
 
@@ -49,7 +52,7 @@ public class DupFinderGUI {
         }
 
         //Create and set up the window.
-        JFrame frame = new JFrame("Duplikat-Finder");
+        frame = new JFrame("Duplikat-Finder");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         //Add content to the window.
@@ -58,5 +61,15 @@ public class DupFinderGUI {
         //Display the window.
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public boolean forceClose(){
+        // TODO Es kann sein, dass frame noch nicht gestartet wurde wegen hoher Last
+        // besser wäre irgendwas mit einem Future
+        if(frame!=null){
+            frame.dispose();
+            return true;
+        }
+        return false;
     }
 }

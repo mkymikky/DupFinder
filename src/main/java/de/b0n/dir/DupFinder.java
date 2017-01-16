@@ -29,7 +29,7 @@ public class DupFinder {
 	}
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		// Lese Root-Verzeichnis aus Argumenten
 		if (args.length < 1 || args[0] == null) {
 			// exit(1): Kein Parameter übergeben
@@ -40,10 +40,15 @@ public class DupFinder {
 
 		final DupFinderGUI gui = new DupFinderGUI();
 		gui.showView();
+		Thread.yield();
+		Thread.sleep(1000);
 		final DupFinder dupFinder = new DupFinder(gui.getTreeView());
-		dupFinder.startSearching(folder);
-
-
+		try {
+			dupFinder.startSearching(folder);
+		}catch (Throwable ex){
+			gui.forceClose();
+			throw ex;
+		}
 	}
 
 
