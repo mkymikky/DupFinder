@@ -17,44 +17,69 @@ import de.b0n.dir.processor.DuplicateLengthFinder;
 public class DupFinder {
 
 	private static final String MESSAGE_NO_PARAM = "FEHLER: Parameter <Verzeichnis> fehlt\r\n usage: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
+	private static final String MESSAGE_NO_INSTANCE_PARAM = "FEHLER: Parameter <TreeView> fehlt\r\n usage: new DupFinder(treeView);";
 
-	private static TreeView treeView = new TreeView();
+	protected TreeView treeView;
+
+	public DupFinder(final TreeView treeView){
+		if( treeView == null ){
+			throw new IllegalArgumentException(MESSAGE_NO_INSTANCE_PARAM);
+		}
+
+		this.treeView=treeView;
+	}
+
 
 	public static void main(String[] args) {
 		// Lese Root-Verzeichnis aus Argumenten
 		if (args.length < 1 || args[0] == null) {
 			// exit(1): Kein Parameter übergeben
 			System.err.println(MESSAGE_NO_PARAM);
-			System.exit(1);
+			throw new IllegalArgumentException(MESSAGE_NO_PARAM);
 		}
-		
-        //Schedule a job for the event dispatch thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
-		
+		final File folder = new File(args[0] + File.separator);
+
+		final DupFinderGUI gui = new DupFinderGUI();
+		gui.showView();
+		final DupFinder dupFinder = new DupFinder(gui.getTreeView());
+		dupFinder.startSearching(folder);
+
+
+	}
+
+
+	public void startSearching(final File folder){
+
+		if( folder == null ){
+			throw new IllegalArgumentException(MESSAGE_NO_PARAM);
+		}
+
 		long startTime = System.nanoTime();
 		ExecutorService threadPool = Executors.newWorkStealingPool();
 		Queue<Queue<File>> duplicatesByLength=null;
 		try {
-            final File folder = new File(args[0] + File.separator);
-            duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, folder));
+
+			duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, folder));
 		}catch(IllegalArgumentException ex) {
 			System.err.println(ex.getMessage());
-			System.exit(1);
+			throw ex;
 		}
+
+
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
 		Future<?> updater = threadPool.submit(treeView.new Updater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
 		updater.cancel(true);
 		long duplicateTime = System.nanoTime();
 		System.out.println("Zeit in Sekunden zum Finden der Duplikate: " + ((duplicateTime - startTime)/1000000000));
+
 	}
-    
-	private static Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
+
+
+
+
+
+	private Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
 		Queue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
 		for (Long key : input.keySet()) {
 			result.add(input.get(key));
@@ -62,28 +87,5 @@ public class DupFinder {
 		return result;
 	}
 
-	/**
-	* Create the GUI and show it.  For thread safety,
-	* this method should be invoked from the
-	* event dispatch thread.
-	*/
-	private static void createAndShowGUI() {
-	   try {
-	       UIManager.setLookAndFeel(
-	           UIManager.getSystemLookAndFeelClassName());
-	   } catch (Exception e) {
-	       System.err.println("Couldn't use system look and feel.");
-	   }
-	
-	   //Create and set up the window.
-	   JFrame frame = new JFrame("Duplikat-Finder");
-	   frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	
-	   //Add content to the window.
-	   frame.add(treeView );
-	
-	   //Display the window.
-	   frame.pack();
-	   frame.setVisible(true);
-	}
+
 }
