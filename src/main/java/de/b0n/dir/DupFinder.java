@@ -8,25 +8,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
+import de.b0n.dir.view.AbstractView;
+import de.b0n.dir.view.TreeView;
 
 public class DupFinder {
 
 	private static final String MESSAGE_NO_PARAM = "FEHLER: Parameter <Verzeichnis> fehlt\r\n usage: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
 	private static final String MESSAGE_NO_INSTANCE_PARAM = "FEHLER: Parameter <TreeView> fehlt\r\n usage: new DupFinder(treeView);";
 
-	protected TreeView treeView;
+	protected AbstractView view;
 
-	public DupFinder(final TreeView treeView){
-		if( treeView == null ){
+	public DupFinder(final AbstractView view){
+		if( view == null ){
 			throw new IllegalArgumentException(MESSAGE_NO_INSTANCE_PARAM);
 		}
 
-		this.treeView=treeView;
+		this.view=view;
 	}
 
 
@@ -67,7 +66,7 @@ public class DupFinder {
 
 
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
-		Future<?> updater = threadPool.submit(treeView.new Updater(duplicatesByContent));
+		Future<?> updater = threadPool.submit(view.createViewUpdater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
 		updater.cancel(true);
 		long duplicateTime = System.nanoTime();

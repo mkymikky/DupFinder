@@ -1,5 +1,7 @@
 package de.b0n.dir;
 
+import de.b0n.dir.view.TreeView;
+
 import javax.swing.*;
 
 /**
