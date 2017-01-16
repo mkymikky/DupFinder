@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class DupFinderTest {
@@ -37,8 +38,8 @@ public class DupFinderTest {
 		System.setErr(printStream);
 		DupFinder.main(new String[] {});
 		assertEquals(
-				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird\r\n",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8));
+				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
+				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
 	}
 
 	@Test
@@ -46,8 +47,8 @@ public class DupFinderTest {
 		System.setErr(printStream);
 		DupFinder.main(new String[] {PATH_FILE});
 		assertEquals(
-				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird\r\n",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8));
+				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
+				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
 	}
 
 	@Test
@@ -61,15 +62,15 @@ public class DupFinderTest {
         }
 	}
 
-	// This test probably fails due to Bug #2
-//	@Test
-//	public void testDuplicates() {
-//		System.setErr(printStream);
-//       	DupFinder.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-//       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
-//       	listContainsLineEndingWith(lines, "Test1.txt");
-//       	listContainsLineEndingWith(lines, "Test2.txt");
-//	}
+	@Test
+	@Ignore("Probably fails due to #2")
+	public void testDuplicates() {
+		System.setErr(printStream);
+       	DupFinder.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
+       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
+       	listContainsLineEndingWith(lines, "Test1.txt");
+       	listContainsLineEndingWith(lines, "Test2.txt");
+	}
 
 	private void listContainsLineEndingWith(List<String> lines, String ending) {
 		for (String line : lines) {
