@@ -8,46 +8,72 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import javax.swing.JFrame;
-import javax.swing.UIManager;
-
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
+import de.b0n.dir.view.AbstractView;
 
 public class DupFinder {
 
 	private static final String MESSAGE_NO_PARAM = "FEHLER: Parameter <Verzeichnis> fehlt\r\n usage: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
+	private static final String MESSAGE_NO_INSTANCE_PARAM = "FEHLER: Parameter <TreeView> fehlt\r\n usage: new DupFinder(treeView);";
 
-	private static TreeView treeView = new TreeView();
+	protected AbstractView view;
 
-	public static void main(String[] args) {
+	public DupFinder(final AbstractView view){
+		if( view == null ){
+			throw new IllegalArgumentException(MESSAGE_NO_INSTANCE_PARAM);
+		}
+
+		this.view=view;
+	}
+
+	public static void main(String[] args) throws InterruptedException {
 		// Lese Root-Verzeichnis aus Argumenten
 		if (args.length < 1 || args[0] == null) {
 			// exit(1): Kein Parameter übergeben
 			System.err.println(MESSAGE_NO_PARAM);
-			System.exit(1);
+			throw new IllegalArgumentException(MESSAGE_NO_PARAM);
 		}
-		
-        //Schedule a job for the event dispatch thread:
-        //creating and showing this application's GUI.
-        javax.swing.SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                createAndShowGUI();
-            }
-        });
-		
+		final File folder = new File(args[0] + File.separator);
+
+		final DupFinderGUI gui = new DupFinderGUI();
+		gui.showView();
+		final DupFinder dupFinder = new DupFinder(gui.getTreeView());
+		try {
+			dupFinder.startSearching(folder);
+		}catch (Throwable ex){
+			gui.forceClose();
+			throw ex;
+		}
+	}
+
+	public void startSearching(final File folder){
+
+		if( folder == null ){
+			throw new IllegalArgumentException(MESSAGE_NO_PARAM);
+		}
+
 		long startTime = System.nanoTime();
 		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Queue<Queue<File>> duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, new File(args[0])));
+
+		Queue<Queue<File>> duplicatesByLength=null;
+		try {
+
+			duplicatesByLength = unmap(DuplicateLengthFinder.getResult(threadPool, folder));
+		}catch(IllegalArgumentException ex) {
+			System.err.println(ex.getMessage());
+			throw ex;
+		}
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
-		Future<?> updater = threadPool.submit(treeView.new Updater(duplicatesByContent));
+		Future<?> updater = threadPool.submit(view.createViewUpdater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
 		updater.cancel(true);
 		long duplicateTime = System.nanoTime();
 		System.out.println("Zeit in Sekunden zum Finden der Duplikate: " + ((duplicateTime - startTime)/1000000000));
+
 	}
-    
-	private static Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
+
+	private Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
 		Queue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
 		for (Long key : input.keySet()) {
 			result.add(input.get(key));
@@ -55,28 +81,5 @@ public class DupFinder {
 		return result;
 	}
 
-	/**
-	* Create the GUI and show it.  For thread safety,
-	* this method should be invoked from the
-	* event dispatch thread.
-	*/
-	private static void createAndShowGUI() {
-	   try {
-	       UIManager.setLookAndFeel(
-	           UIManager.getSystemLookAndFeelClassName());
-	   } catch (Exception e) {
-	       System.err.println("Couldn't use system look and feel.");
-	   }
-	
-	   //Create and set up the window.
-	   JFrame frame = new JFrame("Duplikat-Finder");
-	   frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-	
-	   //Add content to the window.
-	   frame.add(treeView );
-	
-	   //Display the window.
-	   frame.pack();
-	   frame.setVisible(true);
-	}
+
 }

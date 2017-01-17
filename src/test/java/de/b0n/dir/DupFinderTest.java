@@ -41,19 +41,6 @@ public class DupFinderTest {
         return Arrays.asList(supportedOS).contains(OS_NAME);
     }
 
-    private long copy(final InputStream inStream, final Writer writer) throws IOException {
-        final InputStreamReader input = new InputStreamReader(inStream);
-        char[] buffer = new char[1024];
-        long count = 0;
-        int n = 0;
-        while (-1 != (n = input.read(buffer))) {
-            writer.write(buffer, 0, n);
-            count += n;
-        }
-        return count;
-    }
-
-
     @Test(expected = IllegalArgumentException.class)
     @Ignore  //TODO Nullpointer gewollt?
     public void nullArguments() throws InterruptedException {
