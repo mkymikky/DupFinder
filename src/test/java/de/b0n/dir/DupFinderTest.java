@@ -1,83 +1,105 @@
 package de.b0n.dir;
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.*;
+import java.util.Arrays;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeTrue;
+
+/**
+ * Created by huluvu424242 on 15.01.17.
+ */
+@Ignore
 public class DupFinderTest {
-	private static final String PATH_FILE = "src/test/resources/Test1.txt";
-	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyFolder";
-    private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 
-	private PrintStream printStream;
-	private ByteArrayOutputStream byteArrayOutputStream;
+    private static final String OS_NAME = System.getProperty("os.name");
 
-	@Before
-	public void setUp() throws IOException {
-		byteArrayOutputStream = new ByteArrayOutputStream();
-		printStream = new PrintStream(byteArrayOutputStream);
-	}
+    String unreadableFolder;
 
-	@After
-	public void tearDown() throws IOException {
-	}
+    @Before
+    public void setUp() {
 
-	@Test
-	public void testNoArgument() {
-		System.setErr(printStream);
-		DupFinder.main(new String[] {});
-		assertEquals(
-				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
-	}
-
-	@Test
-	public void testArgumentIsFile() {
-		System.setErr(printStream);
-		DupFinder.main(new String[] {PATH_FILE});
-		assertEquals(
-				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
-	}
-
-	@Test
-	public void testPathIsEmpty() {
-		System.setErr(printStream);
-        final File folder = new File(PATH_EMPTY_FOLDER);
-        if (folder.mkdir()) {
-        	DupFinder.main(new String[] {PATH_EMPTY_FOLDER});
-        	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
-        	folder.delete();
+        // each OS must be add to supportedOS() too
+        if ("Linux".equals(OS_NAME)) {
+            unreadableFolder = "/root";
+        } else {
+            unreadableFolder = null;
         }
-	}
+    }
 
-	@Test
-	@Ignore("Probably fails due to #2")
-	public void testDuplicates() {
-		System.setErr(printStream);
-       	DupFinder.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
-       	listContainsLineEndingWith(lines, "Test1.txt");
-       	listContainsLineEndingWith(lines, "Test2.txt");
-	}
+    /**
+     * OS currently supported by specific tests
+     *
+     * @return
+     */
+    private boolean supportedOS() {
+        final String[] supportedOS = new String[]{"Linux"};
+        return Arrays.asList(supportedOS).contains(OS_NAME);
+    }
 
-	private void listContainsLineEndingWith(List<String> lines, String ending) {
-		for (String line : lines) {
-			if (line.endsWith(ending)) {
-				return;
-			}
-		}
-		fail("No line ends with " + ending);
-	}
+    private long copy(final InputStream inStream, final Writer writer) throws IOException {
+        final InputStreamReader input = new InputStreamReader(inStream);
+        char[] buffer = new char[1024];
+        long count = 0;
+        int n = 0;
+        while (-1 != (n = input.read(buffer))) {
+            writer.write(buffer, 0, n);
+            count += n;
+        }
+        return count;
+    }
+
+
+    @Test(expected = IllegalArgumentException.class)
+    @Ignore  //TODO Nullpointer gewollt?
+    public void nullArguments() throws InterruptedException {
+        DupFinder.main(null);
+    }
+
+    @Test
+    public void noArguments() throws IOException, InterruptedException {
+        try {
+            DupFinder.main(new String[]{"abc"});
+            fail();
+
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> existiert nicht:"));
+        }catch (Throwable th){
+            throw th;
+        }
+    }
+
+    @Test
+    public void noFolderArgument() throws IOException, InterruptedException {
+        try {
+            DupFinder.main(new String[]{"pom.xml"});
+            fail();
+
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis:"));
+        }catch (Throwable th){
+            throw th;
+        }
+    }
+
+    @Test
+    public void noReadableFolderArgument() throws IOException, InterruptedException {
+        // conditional test
+        assumeTrue(supportedOS());
+
+        try {
+            DupFinder.main(new String[]{unreadableFolder});
+            fail();
+
+        } catch (IllegalArgumentException ex) {
+            assertTrue(ex.getMessage().startsWith("FEHLER: Parameter <Verzeichnis> ist nicht lesbar:"));
+        }catch (Throwable th){
+           throw th;
+        }
+
+    }
 }
