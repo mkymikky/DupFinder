@@ -28,7 +28,6 @@ public class DupFinder {
 		this.view=view;
 	}
 
-
 	public static void main(String[] args) throws InterruptedException {
 		// Lese Root-Verzeichnis aus Argumenten
 		if (args.length < 1 || args[0] == null) {
@@ -49,7 +48,6 @@ public class DupFinder {
 		}
 	}
 
-
 	public void startSearching(final File folder){
 
 		if( folder == null ){
@@ -58,6 +56,7 @@ public class DupFinder {
 
 		long startTime = System.nanoTime();
 		ExecutorService threadPool = Executors.newWorkStealingPool();
+
 		Queue<Queue<File>> duplicatesByLength=null;
 		try {
 
@@ -66,8 +65,6 @@ public class DupFinder {
 			System.err.println(ex.getMessage());
 			throw ex;
 		}
-
-
 		Queue<Queue<File>> duplicatesByContent = new ConcurrentLinkedQueue<Queue<File>>();
 		Future<?> updater = threadPool.submit(view.createViewUpdater(duplicatesByContent));
 		DuplicateContentFinder.getResult(threadPool, duplicatesByLength, duplicatesByContent);
@@ -76,10 +73,6 @@ public class DupFinder {
 		System.out.println("Zeit in Sekunden zum Finden der Duplikate: " + ((duplicateTime - startTime)/1000000000));
 
 	}
-
-
-
-
 
 	private Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
 		Queue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
