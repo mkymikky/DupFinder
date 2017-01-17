@@ -1,5 +1,7 @@
 package de.b0n.dir;
 
+import de.b0n.dir.view.DuplicateTreeNode;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
