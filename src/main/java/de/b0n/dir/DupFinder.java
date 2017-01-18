@@ -29,7 +29,7 @@ public class DupFinder {
 
 	public static void main(String[] args) throws InterruptedException {
 		// Lese Root-Verzeichnis aus Argumenten
-		if (args.length < 1 || args[0] == null) {
+		if (args==null || args.length < 1 || args[0] == null) {
 			// exit(1): Kein Parameter übergeben
 			System.err.println(MESSAGE_NO_PARAM);
 			throw new IllegalArgumentException(MESSAGE_NO_PARAM);

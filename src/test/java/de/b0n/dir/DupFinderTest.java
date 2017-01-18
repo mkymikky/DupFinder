@@ -41,7 +41,6 @@ public class DupFinderTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @Ignore  //TODO Nullpointer gewollt?
     public void nullArguments() throws InterruptedException {
         DupFinder.main(null);
     }
