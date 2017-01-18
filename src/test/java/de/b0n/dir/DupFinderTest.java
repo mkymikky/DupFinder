@@ -87,4 +87,16 @@ public class DupFinderTest {
         }
 
     }
+
+    @Test
+    public void validFolderToScan() throws IOException, InterruptedException {
+
+            try {
+                DupFinder.main(new String[]{"src/test/resources/"});
+                assertTrue(true);
+            }catch(Throwable th){
+                fail();
+            }
+
+    }
 }
