@@ -16,7 +16,6 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Created by huluvu424242 on 15.01.17.
  */
-@Ignore
 public class DupFinderTest {
 
     private static final String OS_NAME = System.getProperty("os.name");
