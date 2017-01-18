@@ -13,6 +13,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateContentFinderTest {
+
+	private static final String PATH_FILE_1 = "src/test/resources/Test1.txt";
+	private static final String PATH_FILE_2 = "src/test/resources/noDuplicates/Test1.txt";
+	
 	@Before
 	public void setUp() {
 		
@@ -75,5 +79,35 @@ public class DuplicateContentFinderTest {
         assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
         assertSame("Ausgabe und Arbeitsqueue müssen identisch sein.", output, otherOutput);
         assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
+    }
+
+    @Test
+    public void scanSingleInput() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File file = new File(PATH_FILE_1);
+        final Queue<File> files = new ConcurrentLinkedQueue<File>();
+        files.add(file);
+        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
+        input.add(files);
+        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(threadPool, input);
+        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
+        assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
+    }
+
+    @Test
+    public void scanDuplicateInput() {
+        final ExecutorService threadPool = Executors.newWorkStealingPool();
+        final File file1 = new File(PATH_FILE_1);
+        final File file2 = new File(PATH_FILE_2);
+        final Queue<File> files = new ConcurrentLinkedQueue<File>();
+        files.add(file1);
+        files.add(file2);
+        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
+        input.add(files);
+        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(threadPool, input);
+        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
+        assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 1, output.size());
+        assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 2, output.peek().size());
+        assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden", output.peek().peek().getAbsolutePath().endsWith("Test1.txt"));
     }
 }

@@ -11,7 +11,6 @@ import java.util.concurrent.Future;
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
 import de.b0n.dir.view.AbstractView;
-import de.b0n.dir.view.TreeView;
 
 public class DupFinder {
 
