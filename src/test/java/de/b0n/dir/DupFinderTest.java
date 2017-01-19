@@ -13,7 +13,6 @@ import static org.junit.Assume.assumeTrue;
 /**
  * Created by huluvu424242 on 15.01.17.
  */
-@Ignore
 public class DupFinderTest {
 
     private static final String OS_NAME = System.getProperty("os.name");
@@ -42,7 +41,6 @@ public class DupFinderTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    @Ignore  //TODO Nullpointer gewollt?
     public void nullArguments() throws InterruptedException {
         DupFinder.main(null);
     }
@@ -87,6 +85,18 @@ public class DupFinderTest {
         }catch (Throwable th){
            throw th;
         }
+
+    }
+
+    @Test
+    public void validFolderToScan() throws IOException, InterruptedException {
+
+            try {
+                DupFinder.main(new String[]{"src/test/resources/"});
+                assertTrue(true);
+            }catch(Throwable th){
+                fail();
+            }
 
     }
 }
