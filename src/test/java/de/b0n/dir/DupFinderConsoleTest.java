@@ -14,6 +14,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assume.assumeTrue;
 
 public class DupFinderConsoleTest {
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -55,11 +56,10 @@ public class DupFinderConsoleTest {
 	public void testPathIsEmpty() {
 		System.setErr(printStream);
         final File folder = new File(PATH_EMPTY_FOLDER);
-        if (folder.mkdir()) {
-        	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
-        	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
-        	folder.delete();
-        }
+        assumeTrue(folder.mkdir());
+    	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
+    	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
+    	folder.delete();
 	}
 
 	@Test
