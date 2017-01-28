@@ -12,8 +12,8 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assume.assumeTrue;
 
 public class DupFinderConsoleTest {
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -55,21 +55,25 @@ public class DupFinderConsoleTest {
 	public void testPathIsEmpty() {
 		System.setErr(printStream);
         final File folder = new File(PATH_EMPTY_FOLDER);
-        if (folder.mkdir()) {
-        	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
-        	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
-        	folder.delete();
-        }
+        assumeTrue(folder.mkdir());
+    	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
+    	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
+    	folder.delete();
 	}
 
 	@Test
-	@Ignore("Probably fails due to #2")
 	public void testDuplicates() {
-		System.setErr(printStream);
+		System.setOut(printStream);
        	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
+       	String output = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
+       	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
        	listContainsLineEndingWith(lines, "Test1.txt");
        	listContainsLineEndingWith(lines, "Test2.txt");
+	}
+
+	@Test
+	public void testConstructor() {
+		assertNotNull(new DupFinderConsole());
 	}
 
 	private void listContainsLineEndingWith(List<String> lines, String ending) {

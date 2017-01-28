@@ -59,10 +59,10 @@ class FileStream {
 		if (stream != null) {
 			try {
 				stream.close();
-				stream = null;
 			} catch (IOException e) {
+				throw new IllegalStateException("Could not close Stream. Nothing to do about that, resetting FileStream.");
+			} finally {
 				stream = null;
-				throw new IllegalStateException("Could not close Stream. Nothing to do about that, resetting Stream.");
 			}
 		}
 	}
