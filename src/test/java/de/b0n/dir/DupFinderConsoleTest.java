@@ -12,7 +12,6 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assume.assumeTrue;
 
@@ -63,11 +62,11 @@ public class DupFinderConsoleTest {
 	}
 
 	@Test
-	@Ignore("Probably fails due to #2")
 	public void testDuplicates() {
-		System.setErr(printStream);
+		System.setOut(printStream);
        	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	List<String> lines = Arrays.asList(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).split("\\r\\n|\\n|\\r"));
+       	String output = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
+       	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
        	listContainsLineEndingWith(lines, "Test1.txt");
        	listContainsLineEndingWith(lines, "Test2.txt");
 	}

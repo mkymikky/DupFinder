@@ -44,8 +44,8 @@ public class DupFinderConsole {
 			return;
 		}
 		
-		ExecutorService threadPool = Executors.newWorkStealingPool(2);
-		Map<Long, Queue<File>> duplicateLengthFilesQueuesMap = DuplicateLengthFinder.getResult(threadPool, directory);
+		ExecutorService threadPool = Executors.newWorkStealingPool();
+		Map<Long, Queue<File>> duplicateLengthFilesQueuesMap = DuplicateLengthFinder.getResult(directory, threadPool);
 		Queue<Queue<File>> duplicateLengthFilesQueues = unmap(duplicateLengthFilesQueuesMap);
 		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(threadPool, duplicateLengthFilesQueues);
 		printQueues(duplicateContentFilesQueues);
@@ -62,13 +62,13 @@ public class DupFinderConsole {
 	private static void printQueues(Queue<Queue<File>> queues) {
 		for (Queue<File> files : queues) {
 			printFiles(files);
+			System.out.println();
 		}
 	}
 
 	private static void printFiles(Queue<File> files) {
 		for (File file : files) {
 			printFile(file);
-			System.out.println();
 		}
 	}
 

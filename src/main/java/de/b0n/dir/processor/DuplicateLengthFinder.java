@@ -1,12 +1,14 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /**
@@ -21,13 +23,14 @@ public class DuplicateLengthFinder implements Runnable {
 	private final ExecutorService threadPool;
 	private final File folder;
 	Map<Long, Queue<File>> result;
+	private final DuplicateLengthFinderCallback callback;
 
 	/**
 	 * Bereitet für das gegebene Verzeichnis die Suche nach gleich großen Dateien vor. 
 	 * @param threadPool Pool zur Ausführung der Suchen
 	 * @param folder zu durchsuchendes Verzeichnis, muss existieren und lesbar sein
 	 */
-	private DuplicateLengthFinder(final ExecutorService threadPool, final File folder, Map<Long, Queue<File>> result) {
+	private DuplicateLengthFinder(final File folder, final ExecutorService threadPool, Map<Long, Queue<File>> result, DuplicateLengthFinderCallback callback) {
 		if (!folder.exists()) {
 			throw new IllegalArgumentException("FEHLER: Parameter <Verzeichnis> existiert nicht: " + folder.getAbsolutePath());
 		}
@@ -41,6 +44,7 @@ public class DuplicateLengthFinder implements Runnable {
 		this.threadPool = threadPool;
 		this.folder = folder;
 		this.result = result;
+		this.callback = callback;
 	}
 
 	/**
@@ -63,10 +67,15 @@ public class DuplicateLengthFinder implements Runnable {
 
 			if (file.isDirectory()) {
 				try {
-					futures.add(threadPool.submit(new DuplicateLengthFinder(threadPool, file, result)));
+					futures.add(threadPool.submit(new DuplicateLengthFinder(file, threadPool, result, callback)));
+					if (callback != null) {
+						callback.enteredNewFolder(file.getCanonicalPath());
+					}
 				} catch (IllegalArgumentException e) {
 					System.err.println("Given Folder is invalid, continue with next: " + file.getAbsolutePath());
 					continue;
+				} catch (IOException e) {
+					System.err.println("Callback ");
 				}
 			}
 
@@ -146,33 +155,53 @@ public class DuplicateLengthFinder implements Runnable {
 
 	/**
 	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
-	 * @param threadPool Pool zur Ausführung der Suchen
+	 * Verwendet einen Executors.newWorkStealingPool() als ThreadPool.
 	 * @param folder Zu durchsuchendes Verzeichnis
 	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
 	 */
-	public static Map<Long, Queue<File>> getResult(final ExecutorService threadPool, final File folder) {
-		return getResult(threadPool, folder, null);
+	public static Map<Long, Queue<File>> getResult(final File folder) {
+		return getResult(folder, Executors.newWorkStealingPool(), null);
 	}
 
 	/**
 	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
-	 * @param threadPool Pool zur Ausführung der Suchen
 	 * @param folder Zu durchsuchendes Verzeichnis
+	 * @param threadPool Pool zur Ausführung der Suchen
 	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
 	 */
-	public static Map<Long, Queue<File>> getResult(final ExecutorService threadPool, final File folder, Map<Long, Queue<File>> result) {
-		if (threadPool == null) {
-			throw new IllegalArgumentException("threadPool may not be null.");
-		}
+	public static Map<Long, Queue<File>> getResult(final File folder, final ExecutorService threadPool) {
+		return getResult(folder, threadPool, null);
+	}
+
+	/**
+	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
+	 * Verwendet einen Executors.newWorkStealingPool() als ThreadPool.
+	 * @param folder Zu durchsuchendes Verzeichnis
+	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf
+	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
+	 */
+	public static Map<Long, Queue<File>> getResult(final File folder, DuplicateLengthFinderCallback callback) {
+		return getResult(folder, Executors.newWorkStealingPool(), null);
+	}
+
+	/**
+	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
+	 * @param folder Zu durchsuchendes Verzeichnis
+	 * @param threadPool Pool zur Ausführung der Suchen
+	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf
+	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
+	 */
+	public static Map<Long, Queue<File>> getResult(final File folder, final ExecutorService threadPool, DuplicateLengthFinderCallback callback) {
 		if (folder == null) {
 			throw new IllegalArgumentException("folder may not be null.");
 		}
 
-		if (result == null) {
-			result = new ConcurrentHashMap<Long, Queue<File>>();
+		if (threadPool == null) {
+			throw new IllegalArgumentException("threadPool may not be null.");
 		}
+		ConcurrentHashMap<Long, Queue<File>> result = new ConcurrentHashMap<Long, Queue<File>>();
 
-		Future<?> future = threadPool.submit(new DuplicateLengthFinder(threadPool, folder, result));
+		Future<?> future = threadPool.submit(new DuplicateLengthFinder(folder, threadPool, result, callback));
 
 		try {
 			future.get();
