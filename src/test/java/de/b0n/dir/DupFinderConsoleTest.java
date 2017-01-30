@@ -71,6 +71,11 @@ public class DupFinderConsoleTest {
        	listContainsLineEndingWith(lines, "Test2.txt");
 	}
 
+	@Test
+	public void testConstructor() {
+		assertNotNull(new DupFinderConsole());
+	}
+
 	private void listContainsLineEndingWith(List<String> lines, String ending) {
 		for (String line : lines) {
 			if (line.endsWith(ending)) {

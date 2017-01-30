@@ -177,7 +177,7 @@ public class DuplicateLengthFinder implements Runnable {
 	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
 	 * Verwendet einen Executors.newWorkStealingPool() als ThreadPool.
 	 * @param folder Zu durchsuchendes Verzeichnis
-	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf
+	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf (darf null sein)
 	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
 	 */
 	public static Map<Long, Queue<File>> getResult(final File folder, DuplicateLengthFinderCallback callback) {
@@ -188,7 +188,7 @@ public class DuplicateLengthFinder implements Runnable {
 	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher Größe.
 	 * @param folder Zu durchsuchendes Verzeichnis
 	 * @param threadPool Pool zur Ausführung der Suchen
-	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf
+	 * @param callback Ruft den Callback bei jedem neu betretenen Verzeichnis auf (darf null sein)
 	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in denen die gefundenen Dateien abgelegt sind 
 	 */
 	public static Map<Long, Queue<File>> getResult(final File folder, final ExecutorService threadPool, DuplicateLengthFinderCallback callback) {
