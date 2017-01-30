@@ -116,7 +116,7 @@ public class DuplicateLengthFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void scanUnreadableFolder() {
-		assumeTrue(System.getProperty("os.name").equals("Linux"));
+		assumeTrue(System.getProperty("os.name").contains("Linux"));
 		File folder = new File("/root");
 		DuplicateLengthFinder.getResult(folder);
 	}
