@@ -6,7 +6,6 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.File;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -86,9 +85,9 @@ public class DuplicateLengthFinderTest {
 	@Test
 	public void scanFlatFolder() {
 		final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
-		final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
+		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
 				result.values().iterator().next().size());
 	}
@@ -96,9 +95,9 @@ public class DuplicateLengthFinderTest {
 	@Test
 	public void scanFolderOnlyFolder() {
 		final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
-		final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.size());
+		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
 				result.values().iterator().next().size());
 	}
@@ -107,9 +106,9 @@ public class DuplicateLengthFinderTest {
 	public void scanEmptyFolder() {
 		final File folder = new File(PATH_EMPTY_FOLDER);
 		if (folder.mkdir()) {
-			final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+			final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 			assertNotNull(result);
-			assertEquals(0, result.size());
+			assertEquals(0, result.values().size());
 			folder.delete();
 		}
 	}
@@ -125,28 +124,29 @@ public class DuplicateLengthFinderTest {
 	@Test
 	public void scanNoDuplicates() {
 		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
-		final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals(0, result.size());
+		assertEquals(0, result.values().size());
 	}
 
 	@Test
 	public void scanDuplicatesInTree() {
 		final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
-		final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals(1, result.size());
-		assertEquals(2, result.values().iterator().next().size());
+		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 
+		assertEquals(1, result.values().size());
+		assertEquals(2, elementsIterator.next().size());
 	}
 
 	@Test
 	public void scanDuplicatesInBiggerTree() {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		final Map<Long, Queue<File>> result = DuplicateLengthFinder.getResult(folder);
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.size());
-		Iterator<Queue<File>> iterator = result.values().iterator();
-		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, iterator.next().size());
-		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, iterator.next().size());
+		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
+		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 
+		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
+		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, elementsIterator.next().size());
 	}
 }

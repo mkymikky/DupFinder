@@ -131,11 +131,11 @@ public class DuplicateContentFinder implements Runnable {
 		return currentFileStreams;
 	}
 
-	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final Queue<Queue<File>> input) {
+	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final Collection<Queue<File>> input) {
 		return getResult(threadPool, input, null);
 	}
 
-	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final Queue<Queue<File>> input, Queue<Queue<File>> result) {
+	public static Queue<Queue<File>> getResult(final ExecutorService threadPool, final Collection<Queue<File>> input, Queue<Queue<File>> result) {
 		if (threadPool == null) {
 			throw new IllegalArgumentException("threadPool may not be null.");
 		}

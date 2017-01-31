@@ -1,11 +1,12 @@
 package de.b0n.dir;
 
 import java.io.File;
-import java.util.Map;
+import java.util.Collection;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import de.b0n.dir.processor.Cluster;
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
 
@@ -45,18 +46,10 @@ public class DupFinderConsole {
 		}
 		
 		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Map<Long, Queue<File>> duplicateLengthFilesQueuesMap = DuplicateLengthFinder.getResult(directory, threadPool);
-		Queue<Queue<File>> duplicateLengthFilesQueues = unmap(duplicateLengthFilesQueuesMap);
-		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(threadPool, duplicateLengthFilesQueues);
+		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory, threadPool);
+		Collection<Queue<File>> fileQueues = cluster.values();
+		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(threadPool, fileQueues);
 		printQueues(duplicateContentFilesQueues);
-	}
-
-	private static Queue<Queue<File>> unmap(Map<Long, Queue<File>> input) {
-		Queue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
-		for (Long key : input.keySet()) {
-			result.add(input.get(key));
-		}
-		return result;
 	}
     
 	private static void printQueues(Queue<Queue<File>> queues) {
