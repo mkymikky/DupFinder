@@ -61,8 +61,7 @@ public class DuplicateLengthFinder {
 			try {
 				futures.remove().get();
 			} catch (InterruptedException | ExecutionException e) {
-				// This is a major problem, notify user and try to recover
-				e.printStackTrace();
+				throw new IllegalStateException("Threading has failes: " + e.getMessage(), e);
 			}
 		}
 		return result;
@@ -154,7 +153,7 @@ public class DuplicateLengthFinder {
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
 	public static Cluster<Long, File> getResult(final File folder, DuplicateLengthFinderCallback callback) {
-		return getResult(folder, Executors.newWorkStealingPool(), null);
+		return getResult(folder, Executors.newWorkStealingPool(), callback);
 	}
 
 	/**
@@ -180,7 +179,7 @@ public class DuplicateLengthFinder {
 		if (threadPool == null) {
 			throw new IllegalArgumentException("threadPool may not be null.");
 		}
-
-		return new DuplicateLengthFinder(folder, threadPool, callback).execute().removeUniques();
+		
+		return new DuplicateLengthFinder(folder, threadPool, callback).execute();
 	}
 }

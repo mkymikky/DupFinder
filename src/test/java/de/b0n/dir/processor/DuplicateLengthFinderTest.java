@@ -1,11 +1,12 @@
 package de.b0n.dir.processor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assume.*;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +18,7 @@ import org.junit.Test;
 /**
  * Created by huluvu424242 on 07.01.17.
  */
-public class DuplicateLengthFinderTest {
+public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 
 	private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -66,6 +67,7 @@ public class DuplicateLengthFinderTest {
 		DuplicateLengthFinder.getResult(null, new DuplicateLengthFinderCallback() {
 			@Override
 			public void enteredNewFolder(String canonicalPath) {
+				fail();
 			}
 		});
 	}
@@ -115,7 +117,7 @@ public class DuplicateLengthFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void scanUnreadableFolder() {
-		System.out.println("OS calls itself: " + System.getProperty("os.name"));
+		System.err.println("OS calls itself: " + System.getProperty("os.name"));
 		assumeTrue(System.getProperty("os.name").contains("Linux"));
 		File folder = new File("/root");
 		DuplicateLengthFinder.getResult(folder);
@@ -126,7 +128,9 @@ public class DuplicateLengthFinderTest {
 		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
 		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals(0, result.values().size());
+		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
+		assertEquals("In der gefundenen Gruppe darf nur ein Element sein", 1, result.values().iterator().next().size());
+		
 	}
 
 	@Test
@@ -140,9 +144,46 @@ public class DuplicateLengthFinderTest {
 	}
 
 	@Test
-	public void scanDuplicatesInBiggerTree() {
+	public void scanDuplicatesInBiggerTreeWithCallback() {
+		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
+		List<String> foldersEntered = new ArrayList<String>();
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder, new DuplicateLengthFinderCallback() {
+			
+			@Override
+			public void enteredNewFolder(String canonicalPath) {
+				foldersEntered.add(canonicalPath);
+			}
+		});
+		assertNotNull(result);
+		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
+		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 
+		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
+		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, elementsIterator.next().size());
+		assertEquals(5, foldersEntered.size());
+		assertListContainsLineEndingWith(foldersEntered, "duplicateTree");
+		assertListContainsLineEndingWith(foldersEntered, "subfolder");
+		assertListContainsLineEndingWith(foldersEntered, "folderOnlyFolder");
+		assertListContainsLineEndingWith(foldersEntered, "flatDuplicateTree");
+		assertListContainsLineEndingWith(foldersEntered, "noDuplicates");
+		
+	}
+
+	@Test
+	public void scanDuplicatesInBiggerTreeWithFolder() {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		assertNotNull(result);
+		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
+		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 
+		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
+		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, elementsIterator.next().size());
+	}
+
+	@Test
+	public void scanDuplicatesInBiggerTreeWithThreadPool() {
+		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
+		final ExecutorService threadPool = Executors.newWorkStealingPool();
+		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder, threadPool);
 		assertNotNull(result);
 		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
 		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 

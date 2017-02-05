@@ -48,7 +48,7 @@ public class DupFinderConsole {
 		ExecutorService threadPool = Executors.newWorkStealingPool();
 		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory, threadPool);
 		Collection<Queue<File>> fileQueues = cluster.values();
-		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(threadPool, fileQueues);
+		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(fileQueues, threadPool);
 		printQueues(duplicateContentFilesQueues);
 	}
     

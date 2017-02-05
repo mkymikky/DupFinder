@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Kapselt File und zugehörigen Stream in einem Objekt.
@@ -15,6 +18,37 @@ class FileStream {
 
 	private final File file;
 	private BufferedInputStream stream;
+
+	/**
+	 * Packt die Collection von Dateien in jeweils in einen FileStream, zusammengefasst in einer Queue.
+	 * @param files In FileStreams zu kapselnde Files
+	 * @return Queue mit FileStreams
+	 */
+	public static Queue<FileStream> pack(Collection<File> files) {
+		Queue<FileStream> fileStreams = new ConcurrentLinkedQueue<FileStream>();
+		for (File file : files) {
+			fileStreams.add(new FileStream(file));
+		}
+		return fileStreams;
+	}
+
+	public static Queue<File> extract(Collection<FileStream> fileStreams) {
+		Queue<File> filesQueue = new ConcurrentLinkedQueue<File>();
+		for (FileStream fileStream : fileStreams) {
+			filesQueue.add(fileStream.getFile());
+		}
+		return filesQueue;
+	}
+
+	/**
+	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
+	 * @param fileStreams zu schließende FileStreams
+	 */
+	public static void closeAll(Collection<FileStream> fileStreams) {
+		for (FileStream fileStream : fileStreams) {
+			fileStream.close();
+		}
+	}
 
 	/**
 	 * Erzeugt das Objekt.
