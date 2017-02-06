@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import static org.junit.Assume.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -66,7 +67,12 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	public void noFolderButCallback() {
 		DuplicateLengthFinder.getResult(null, new DuplicateLengthFinderCallback() {
 			@Override
-			public void enteredNewFolder(String canonicalPath) {
+			public void enteredNewFolder(File file) {
+				fail();
+			}
+
+			@Override
+			public void unreadableFolder(File folder) {
 				fail();
 			}
 		});
@@ -150,8 +156,17 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder, new DuplicateLengthFinderCallback() {
 			
 			@Override
-			public void enteredNewFolder(String canonicalPath) {
-				foldersEntered.add(canonicalPath);
+			public void enteredNewFolder(File folder) {
+				try {
+					foldersEntered.add(folder.getCanonicalPath());
+				} catch (IOException e) {
+					fail();
+				}
+			}
+
+			@Override
+			public void unreadableFolder(File folder) {
+				fail();
 			}
 		});
 		assertNotNull(result);

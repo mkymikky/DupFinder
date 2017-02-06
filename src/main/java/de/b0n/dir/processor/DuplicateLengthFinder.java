@@ -1,7 +1,6 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -36,22 +35,28 @@ public class DuplicateLengthFinder {
 	 */
 	private DuplicateLengthFinder(final File folder, final ExecutorService threadPool,
 			DuplicateLengthFinderCallback callback) {
-		if (!folder.exists()) {
-			throw new IllegalArgumentException(
-					"FEHLER: Parameter <Verzeichnis> existiert nicht: " + folder.getAbsolutePath());
-		}
-		if (!folder.isDirectory()) {
-			throw new IllegalArgumentException(
-					"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: " + folder.getAbsolutePath());
-		}
-		if (!folder.canRead()) {
-			throw new IllegalArgumentException(
-					"FEHLER: Parameter <Verzeichnis> ist nicht lesbar: " + folder.getAbsolutePath());
+		String exceptionMessage = checkFolder(folder);
+		if (exceptionMessage != null) {
+			throw new IllegalArgumentException(exceptionMessage + folder.getAbsolutePath());
 		}
 
 		this.threadPool = threadPool;
 		this.folder = folder;
 		this.callback = callback;
+	}
+
+	private String checkFolder(final File folder) {
+		String exceptionMessage = null;
+		if (!folder.exists()) {
+			exceptionMessage = "FEHLER: Parameter <Verzeichnis> existiert nicht: ";
+		} else if (!folder.isDirectory()) {
+			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: ";
+		} else if (!folder.canRead()) {
+			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist nicht lesbar: ";
+		} else if (folder.list() == null) {
+			exceptionMessage = "FEHLER: Parameter <Verzeichnis> kann nicht aufgelistet werden: ";
+		}
+		return exceptionMessage;
 	}
 
 	private Cluster<Long, File> execute() {
@@ -82,33 +87,20 @@ public class DuplicateLengthFinder {
 		 */
 		@Override
 		public void run() {
-			String[] contents = folder.list();
-			if (contents == null) {
-				try {
-					System.err.println(folder.getCanonicalPath() + " cannot list its content.");
-				} catch (IOException e) {
-				} finally {
-					return;
-				}
-			}
-
-			for (String fileName : contents) {
+			for (String fileName : folder.list()) {
 				File file = new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName);
-				if (!file.canRead()) {
-					continue;
-				}
 
 				if (file.isDirectory()) {
-					try {
+					String exceptionMessage = checkFolder(folder);
+					if (exceptionMessage == null) {
 						futures.add(threadPool.submit(new DuplicateLengthRunner(file)));
 						if (callback != null) {
-							callback.enteredNewFolder(file.getCanonicalPath());
+							callback.enteredNewFolder(file);
 						}
-					} catch (IllegalArgumentException e) {
-						System.err.println("Given Folder is invalid, continue with next: " + file.getAbsolutePath());
-						continue;
-					} catch (IOException e) {
-						System.err.println("Callback ");
+					} else {
+						if (callback != null) {
+							callback.unreadableFolder(file);
+						}
 					}
 				}
 
