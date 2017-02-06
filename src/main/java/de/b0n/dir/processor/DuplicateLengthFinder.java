@@ -61,7 +61,7 @@ public class DuplicateLengthFinder {
 			try {
 				futures.remove().get();
 			} catch (InterruptedException | ExecutionException e) {
-				throw new IllegalStateException("Threading has failes: " + e.getMessage(), e);
+				throw new IllegalStateException("Threading has failed: " + e.getMessage(), e);
 			}
 		}
 		return result;
@@ -82,7 +82,17 @@ public class DuplicateLengthFinder {
 		 */
 		@Override
 		public void run() {
-			for (String fileName : folder.list()) {				
+			String[] contents = folder.list();
+			if (contents == null) {
+				try {
+					System.err.println(folder.getCanonicalPath() + " cannot list its content.");
+				} catch (IOException e) {
+				} finally {
+					return;
+				}
+			}
+
+			for (String fileName : contents) {
 				File file = new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName);
 				if (!file.canRead()) {
 					continue;
@@ -179,7 +189,7 @@ public class DuplicateLengthFinder {
 		if (threadPool == null) {
 			throw new IllegalArgumentException("threadPool may not be null.");
 		}
-		
+
 		return new DuplicateLengthFinder(folder, threadPool, callback).execute();
 	}
 }
