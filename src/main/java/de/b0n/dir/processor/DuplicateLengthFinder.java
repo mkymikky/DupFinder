@@ -97,8 +97,7 @@ public class DuplicateLengthFinder {
 				}
 				return;
 			}
-			
-			
+
 			for (String fileName : contents) {
 				File file = new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName);
 
