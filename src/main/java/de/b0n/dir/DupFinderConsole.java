@@ -1,21 +1,16 @@
 package de.b0n.dir;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
-import de.b0n.dir.processor.Cluster;
-import de.b0n.dir.processor.DuplicateContentFinder;
-import de.b0n.dir.processor.DuplicateLengthFinder;
+import de.b0n.dir.processor.*;
 
 /**
  * Einfache Konsolenanwendung zur Ausgabe der gefundenen Dubletten in einem übergebenen Verzeichnis.
  * @author Claus
  *
  */
-public class DupFinderConsole {
+public class DupFinderConsole implements DupFinderCallback{
 
 	private static final String ERROR = "FEHLER: ";
 	private static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
@@ -33,39 +28,73 @@ public class DupFinderConsole {
 			return;
 		}
 		
-		File directory = new File(args[0] + File.separator);
+		File folder = new File(args[0] + File.separator);
 		
-		if (!directory.isDirectory()) {
+		if (!folder.isDirectory()) {
 			System.err.println(ERROR + INVALID_DIRECTORY + USAGE);
 			return;
 		}
 		
-		if (!directory.canRead()) {
+		if (!folder.canRead()) {
 			System.err.println(ERROR + UREADABLE_DIRECTORY + USAGE);
 			return;
 		}
-		
-		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory, threadPool);
-		Collection<Queue<File>> fileQueues = cluster.values();
-		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(fileQueues, threadPool);
-		printQueues(duplicateContentFilesQueues);
+
+		final DupFinderConsole gui = new DupFinderConsole();
+		gui.searchDuplicatesIn(folder);
+
+	}
+
+	public void searchDuplicatesIn(final File folder){
+		final Cluster<Long,File> model = new Cluster<>();
+		final DupFinder dupFinder = new DupFinder(model);
+		dupFinder.searchDuplicatesIn(folder,this);
+
+//		printQueues(duplicateContentFilesQueues);
 	}
     
-	private static void printQueues(Queue<Queue<File>> queues) {
-		for (Queue<File> files : queues) {
-			printFiles(files);
-			System.out.println();
-		}
+//	private static void printQueues(Queue<Queue<File>> queues) {
+//		for (Queue<File> files : queues) {
+//			printFiles(files);
+//			System.out.println();
+//		}
+//	}
+//
+//	private static void printFiles(Queue<File> files) {
+//		for (File file : files) {
+//			printFile(file);
+//		}
+//	}
+//
+//	private static void printFile(File file) {
+//		System.out.println(file.getAbsolutePath());
+//	}
+
+
+	// DupFinderCallback
+
+	@Override
+	public void failedFiles(int size) {
+
 	}
 
-	private static void printFiles(Queue<File> files) {
-		for (File file : files) {
-			printFile(file);
-		}
+	@Override
+	public void duplicateGroup(Queue<File> duplicateGroup) {
+
 	}
 
-	private static void printFile(File file) {
-		System.out.println(file.getAbsolutePath());
+	@Override
+	public void uniqueFiles(int uniqueFileCount) {
+
+	}
+
+	@Override
+	public void enteredNewFolder(File folder) {
+
+	}
+
+	@Override
+	public void unreadableFolder(File folder) {
+
 	}
 }

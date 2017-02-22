@@ -3,33 +3,55 @@ package de.b0n.dir.processor;
 import java.io.File;
 import java.util.Collection;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 
 public class DuplicateContentFinder {
 	private static final Integer FINISHED = Integer.valueOf(-1);
 	private static final Integer FAILING = Integer.valueOf(-2);
 
-	private final Collection<Queue<File>> input;
+//	private final Collection<Queue<File>> input;
+	protected Cluster<Long,File> model;
 	private final ExecutorService threadPool;
 	private final DuplicateContentFinderCallback callback;
 
-	private final Queue<Queue<File>> result;
-	private final Queue<Future<?>> futures;
+	private final Queue<Queue<File>> result =new ConcurrentLinkedQueue<Queue<File>>();
+	private final Queue<Future<?>> futures=new ConcurrentLinkedQueue<Future<?>>();
 
-	public DuplicateContentFinder(final Collection<Queue<File>> input, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
-		this.input = input;
+	protected DuplicateContentFinder(final Cluster<Long,File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
+		this.model = model;
 		this.threadPool = threadPool;
 		this.callback = callback;
-
-		result = new ConcurrentLinkedQueue<Queue<File>>();
-		futures = new ConcurrentLinkedQueue<Future<?>>();
-
 	}
-	
+
+	protected DuplicateContentFinder(final Cluster<Long,File> model, final DuplicateContentFinderCallback callback){
+		this(model, Executors.newWorkStealingPool(),callback);
+	}
+
+
+	/**
+	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
+	 * Der ThreadPool, wenn noch nicht im Programm verwendet, kann mit Executors.newWorkStealingPool(); instantiiert werden.
+	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
+	 * @param threadPool ExecutorService zur Steuerung der Parallelisierung
+	 * @param callback Optionaler Callback, um über den Fortschritt der Dublettensuche informiert zu werden
+	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
+	 */
+	public Queue<Queue<File>> getResult() {
+		if (threadPool == null) {
+			throw new IllegalArgumentException("threadPool may not be null.");
+		}
+		if (model == null) {
+			throw new IllegalArgumentException("input may not be null.");
+		}
+
+		return execute();
+	}
+
+
 	private Queue<Queue<File>> execute() {
+
+		final Collection<Queue<File>> input = this.model.values();
+
 		for (Queue<File> files : input) {
 			futures.add(threadPool.submit(new DuplicateContentRunner(FileStream.pack(files))));
 		}
@@ -41,7 +63,8 @@ public class DuplicateContentFinder {
 				throw new IllegalStateException("Threading has failes: " + e.getMessage(), e);
 			}
 		}
-		return result;
+
+		return this.result;
 	}
 	
 	private class DuplicateContentRunner implements Runnable {
@@ -126,33 +149,4 @@ public class DuplicateContentFinder {
 		return sortedFiles;
 	}
 
-	/**
-	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * Der ThreadPool, wenn noch nicht im Programm verwendet, kann mit Executors.newWorkStealingPool(); instantiiert werden.
-	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
-	 * @param threadPool ExecutorService zur Steuerung der Parallelisierung
-	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
-	 */
-	public static Queue<Queue<File>> getResult(final Collection<Queue<File>> input, final ExecutorService threadPool) {
-		return getResult(input, threadPool, null);
-	}
-
-	/**
-	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * Der ThreadPool, wenn noch nicht im Programm verwendet, kann mit Executors.newWorkStealingPool(); instantiiert werden.
-	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
-	 * @param threadPool ExecutorService zur Steuerung der Parallelisierung
-	 * @param callback Optionaler Callback, um über den Fortschritt der Dublettensuche informiert zu werden
-	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
-	 */
-	public static Queue<Queue<File>> getResult(final Collection<Queue<File>> input, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
-		if (threadPool == null) {
-			throw new IllegalArgumentException("threadPool may not be null.");
-		}
-		if (input == null) {
-			throw new IllegalArgumentException("input may not be null.");
-		}
-	
-		return new DuplicateContentFinder(input, threadPool, callback).execute();
-	}
 }
