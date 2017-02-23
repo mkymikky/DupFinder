@@ -20,7 +20,7 @@ public class DupFinder {
         final DuplicateLengthFinder lengthFinder = new DuplicateLengthFinder(this.model,callback);
         lengthFinder.readFilesRecursiveOf(folder);
         final DuplicateContentFinder contentFinder = new DuplicateContentFinder(this.model,callback);
-        final Queue<Queue<File>> duplicateContentFilesQueues=contentFinder.getResult();
+        final Queue<Queue<File>> duplicateContentFilesQueues=contentFinder.determineDuplicates();
         printQueues(duplicateContentFilesQueues);
     }
 

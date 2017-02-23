@@ -32,43 +32,43 @@
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noArguments1() {
-//    	DuplicateContentFinder.getResult(null, null);
+//    	DuplicateContentFinder.determineDuplicates(null, null);
 //    }
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noArguments2() {
-//    	DuplicateContentFinder.getResult(null, null, null);
+//    	DuplicateContentFinder.determineDuplicates(null, null, null);
 //    }
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noThreadPool1() {
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
-//        DuplicateContentFinder.getResult(input, null);
+//        DuplicateContentFinder.determineDuplicates(input, null);
 //    }
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noThreadPool2() {
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
-//        DuplicateContentFinder.getResult(input, null, null);
+//        DuplicateContentFinder.determineDuplicates(input, null, null);
 //    }
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noFolder1() {
 //        final ExecutorService threadPool = Executors.newWorkStealingPool();
-//        DuplicateContentFinder.getResult(null, threadPool);
+//        DuplicateContentFinder.determineDuplicates(null, threadPool);
 //    }
 //
 //    @Test(expected=IllegalArgumentException.class)
 //    public void noFolder2() {
 //        final ExecutorService threadPool = Executors.newWorkStealingPool();
-//        DuplicateContentFinder.getResult(null, threadPool, null);
+//        DuplicateContentFinder.determineDuplicates(null, threadPool, null);
 //    }
 //
 //    @Test
 //    public void scanEmptyInputWithoutCallback() {
 //        final ExecutorService threadPool = Executors.newWorkStealingPool();
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
-//        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input, threadPool);
+//        final Queue<Queue<File>> output = DuplicateContentFinder.determineDuplicates(input, threadPool);
 //        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 //        assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
 //    }
@@ -94,7 +94,7 @@
 //				fail();
 //			}
 //		};
-//        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input, threadPool, callback);
+//        final Queue<Queue<File>> output = DuplicateContentFinder.determineDuplicates(input, threadPool, callback);
 //        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 //        assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
 //    }
@@ -107,7 +107,7 @@
 //        files.add(file);
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
 //        input.add(files);
-//        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input, threadPool);
+//        final Queue<Queue<File>> output = DuplicateContentFinder.determineDuplicates(input, threadPool);
 //        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 //        assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
 //    }
@@ -122,7 +122,7 @@
 //        files.add(file2);
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
 //        input.add(files);
-//        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input, threadPool);
+//        final Queue<Queue<File>> output = DuplicateContentFinder.determineDuplicates(input, threadPool);
 //        assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 //        assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 1, output.size());
 //        assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 2, output.peek().size());
@@ -140,7 +140,7 @@
 //        files.add(file2);
 //        final Queue<Queue<File>> input = new ConcurrentLinkedQueue<Queue<File>>();
 //        input.add(files);
-//        final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input, threadPool, new DuplicateContentFinderCallback() {
+//        final Queue<Queue<File>> output = DuplicateContentFinder.determineDuplicates(input, threadPool, new DuplicateContentFinderCallback() {
 //
 //			@Override
 //			public void uniqueFiles(int uniques) {

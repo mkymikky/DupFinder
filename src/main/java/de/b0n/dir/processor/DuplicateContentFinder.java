@@ -36,7 +36,7 @@ public class DuplicateContentFinder {
 	 * @param callback Optionaler Callback, um über den Fortschritt der Dublettensuche informiert zu werden
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public Queue<Queue<File>> getResult() {
+	public Queue<Queue<File>> determineDuplicates() {
 		if (threadPool == null) {
 			throw new IllegalArgumentException("threadPool may not be null.");
 		}
