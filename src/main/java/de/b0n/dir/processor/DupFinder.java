@@ -17,8 +17,8 @@ public class DupFinder {
     }
 
     public Queue<Queue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback){
-        final DuplicateLengthFinder lengthFinder = new DuplicateLengthFinder(this.model,callback);
-        lengthFinder.readFilesRecursiveOf(folder);
+        final DuplicateLengthFinder lengthFinder = new DuplicateLengthFinder(this.model);
+        lengthFinder.readFilesRecursiveOf(folder,callback);
         final DuplicateContentFinder contentFinder = new DuplicateContentFinder(this.model,callback);
         return contentFinder.determineDuplicates();
     }
