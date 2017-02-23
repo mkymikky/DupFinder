@@ -7,100 +7,129 @@ import de.b0n.dir.processor.*;
 
 /**
  * Einfache Konsolenanwendung zur Ausgabe der gefundenen Dubletten in einem übergebenen Verzeichnis.
- * @author Claus
  *
+ * @author Claus
  */
-public class Launcher implements DupFinderCallback{
+public class Launcher {
 
-	private static final String ERROR = "FEHLER: ";
-	private static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
-	private static final String NO_PARAM = "Parameter <Verzeichnis> fehlt.";
-	private static final String INVALID_DIRECTORY = "Parameter <Verzeichnis> ist kein Verzeichnis.";
-	private static final String UREADABLE_DIRECTORY = "Parameter <Verzeichnis> kann nicht gelesen werden.";
-	private static final String NO_EXIST_DIRECTORY = "Parameter <Verzeichnis> existiert nicht.";
-
-	/**
-	 * Sucht im übergebenen Verzeichnis nach Dubletten.
-	 * @param args Erster Parameter muss ein gültiges Verzeichnis sein
-	 */
-	public static void main(String[] args) {
-		if (args.length != 1) {
-			System.err.println(ERROR + NO_PARAM + USAGE);
-			return;
-		}
-		
-		final File folder = new File(args[0] + File.separator);
-
-		if( !folder.exists() ){
-			System.err.println(ERROR+NO_EXIST_DIRECTORY+ USAGE);
-			return;
-		}
-
-		if (!folder.isDirectory()) {
-			System.err.println(ERROR + INVALID_DIRECTORY + USAGE);
-			return;
-		}
-		
-		if (!folder.canRead()) {
-			System.err.println(ERROR + UREADABLE_DIRECTORY + USAGE);
-			return;
-		}
-
-		final Launcher gui = new Launcher();
-		gui.searchDuplicatesIn(folder);
-
-	}
-
-	public void searchDuplicatesIn(final File folder){
-		final Cluster<Long,File> model = new Cluster<>();
-		final DupFinder dupFinder = new DupFinder(model);
-		dupFinder.searchDuplicatesIn(folder,this);
-
-//		printQueues(duplicateContentFilesQueues);
-	}
-    
-//	private static void printQueues(Queue<Queue<File>> queues) {
-//		for (Queue<File> files : queues) {
-//			printFiles(files);
-//			System.out.println();
-//		}
-//	}
-//
-//	private static void printFiles(Queue<File> files) {
-//		for (File file : files) {
-//			printFile(file);
-//		}
-//	}
-//
-//	private static void printFile(File file) {
-//		System.out.println(file.getAbsolutePath());
-//	}
+    protected static final String ERROR = "FEHLER: ";
+    protected static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
+    protected static final String NO_PARAM = "Parameter <Verzeichnis> fehlt.";
+    protected static final String INVALID_DIRECTORY = "Parameter <Verzeichnis> ist kein Verzeichnis.";
+    protected static final String UREADABLE_DIRECTORY = "Parameter <Verzeichnis> kann nicht gelesen werden.";
+    protected static final String NO_EXIST_DIRECTORY = "Parameter <Verzeichnis> existiert nicht.";
 
 
-	// DupFinderCallback
+    protected final DupFinder dupFinder;
 
-	@Override
-	public void failedFiles(int size) {
+    public Launcher(final Cluster<Long, File> model) {
+        this.dupFinder = new DupFinder(model);
+    }
 
-	}
+    public Queue<Queue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback) {
+        return this.dupFinder.searchDuplicatesIn(folder, callback);
+    }
 
-	@Override
-	public void duplicateGroup(Queue<File> duplicateGroup) {
 
-	}
+    /**
+     * Sucht im übergebenen Verzeichnis nach Dubletten.
+     *
+     * @param args Erster Parameter muss ein gültiges Verzeichnis sein
+     */
+    public static void main(String[] args) {
+        if (args.length != 1) {
+            System.err.println(ERROR + NO_PARAM + USAGE);
+            return;
+        }
 
-	@Override
-	public void uniqueFiles(int uniqueFileCount) {
+        final File folder = new File(args[0] + File.separator);
 
-	}
+        if (!folder.exists()) {
+            System.err.println(ERROR + NO_EXIST_DIRECTORY + USAGE);
+            return;
+        }
 
-	@Override
-	public void enteredNewFolder(File folder) {
+        if (!folder.isDirectory()) {
+            System.err.println(ERROR + INVALID_DIRECTORY + USAGE);
+            return;
+        }
 
-	}
+        if (!folder.canRead()) {
+            System.err.println(ERROR + UREADABLE_DIRECTORY + USAGE);
+            return;
+        }
 
-	@Override
-	public void unreadableFolder(File folder) {
+        final Cluster<Long, File> model = new Cluster<>();
+        final Launcher launcher = new Launcher(model);
+        final Queue<Queue<File>> duplicates = launcher.searchDuplicatesIn(folder, new Callback());
+        launcher.printQueues(duplicates);
 
-	}
+    }
+
+
+    protected void printQueues(Queue<Queue<File>> queues) {
+        System.out.println("\n\n### Liste gefundener Duplikate ###\n");
+        for (Queue<File> files : queues) {
+            printFiles(files);
+            System.out.println();
+        }
+    }
+
+    protected void printFiles(Queue<File> files) {
+        if( !files.isEmpty()){
+            final File firstFile=files.peek();
+            System.out.println("( Orte von "+firstFile.getName()+" mit " +firstFile.length()+" Bytes Länge )");
+        }
+
+        for (File file : files) {
+            printFile(file);
+        }
+    }
+
+    protected void printFile(File file) {
+        System.out.println( file.getAbsolutePath());
+    }
+
+
+    protected static class Callback implements DupFinderCallback {
+
+        /**
+         * LengthFinderCallback
+         *
+         */
+
+        @Override
+        public void enteredNewFolder(File folder) {
+            System.out.println("Scanne "+folder.getAbsolutePath());
+        }
+
+        @Override
+        public void unreadableFolder(File folder) {
+            System.err.println("Warning: Folder nicht lesbar: "+folder.getAbsolutePath());
+
+        }
+
+
+        /**
+         * ContentFinderCallback
+         *
+         */
+
+
+        @Override
+        public void failedFiles(int size) {
+
+        }
+
+        @Override
+        public void duplicateGroup(Queue<File> duplicateGroup) {
+
+        }
+
+        @Override
+        public void uniqueFiles(int uniqueFileCount) {
+
+        }
+
+    }
 }

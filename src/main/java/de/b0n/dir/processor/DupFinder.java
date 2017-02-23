@@ -16,32 +16,11 @@ public class DupFinder {
         this.model = model;
     }
 
-    public void searchDuplicatesIn(final File folder, final DupFinderCallback callback){
+    public Queue<Queue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback){
         final DuplicateLengthFinder lengthFinder = new DuplicateLengthFinder(this.model,callback);
         lengthFinder.readFilesRecursiveOf(folder);
         final DuplicateContentFinder contentFinder = new DuplicateContentFinder(this.model,callback);
-        final Queue<Queue<File>> duplicateContentFilesQueues=contentFinder.determineDuplicates();
-        printQueues(duplicateContentFilesQueues);
+        return contentFinder.determineDuplicates();
     }
-
-
-    private void printQueues(Queue<Queue<File>> queues) {
-        for (Queue<File> files : queues) {
-            printFiles(files);
-            System.out.println();
-        }
-    }
-
-    private void printFiles(Queue<File> files) {
-        for (File file : files) {
-            printFile(file);
-        }
-    }
-
-    private static void printFile(File file) {
-        System.out.println(file.getAbsolutePath());
-    }
-
-
 
 }
