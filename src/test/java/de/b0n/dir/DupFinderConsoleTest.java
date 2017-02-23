@@ -38,7 +38,7 @@
 //	@Test
 //	public void testNoArgument() {
 //		System.setErr(printStream);
-//		DupFinderConsole.main(new String[] {});
+//		Launcher.main(new String[] {});
 //		assertEquals(
 //				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
 //				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
@@ -47,7 +47,7 @@
 //	@Test
 //	public void testArgumentIsFile() {
 //		System.setErr(printStream);
-//		DupFinderConsole.main(new String[] {PATH_FILE});
+//		Launcher.main(new String[] {PATH_FILE});
 //		assertEquals(
 //				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
 //				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
@@ -58,7 +58,7 @@
 //		System.setErr(printStream);
 //        final File folder = new File(PATH_EMPTY_FOLDER);
 //        assumeTrue(folder.mkdir());
-//    	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
+//    	Launcher.main(new String[] {PATH_EMPTY_FOLDER});
 //    	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
 //    	folder.delete();
 //	}
@@ -66,7 +66,7 @@
 //	@Test
 //	public void testDuplicates() {
 //		System.setOut(printStream);
-//       	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
+//       	Launcher.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
 //       	String output = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
 //       	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
 //       	assertListContainsLineEndingWith(lines, "Test1.txt");
@@ -75,6 +75,6 @@
 //
 //	@Test
 //	public void testConstructor() {
-//		assertNotNull(new DupFinderConsole());
+//		assertNotNull(new Launcher());
 //	}
 //}
