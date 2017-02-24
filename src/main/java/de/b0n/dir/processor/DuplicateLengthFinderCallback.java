@@ -22,4 +22,11 @@ public interface DuplicateLengthFinderCallback {
 	 */
 	void unreadableFolder(File folder);
 
+	/**
+	 * Wird aufgerufen wenn ein Folder nicht analysiert wird z.B. weil er ein Sym-Link ist.
+	 *
+	 * @param folder
+	 */
+	void skipFolder(File folder);
+
 }

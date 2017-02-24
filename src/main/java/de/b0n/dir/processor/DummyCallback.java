@@ -33,4 +33,9 @@ public class DummyCallback implements DupFinderCallback{
     public void unreadableFolder(File folder) {
 
     }
+
+    @Override
+    public void skipFolder(File folder) {
+
+    }
 }

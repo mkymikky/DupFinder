@@ -109,6 +109,11 @@ public class Launcher {
 
         }
 
+        @Override
+        public void skipFolder(File folder) {
+            System.out.println("Warning: Folder wird übersprungen: "+folder.getAbsolutePath());
+        }
+
 
         /**
          * ContentFinderCallback

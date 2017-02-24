@@ -3,6 +3,7 @@ package de.b0n.dir.processor;
 import de.b0n.dir.DupFinderCallback;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -30,8 +31,7 @@ public class DuplicateLengthFinder {
      * Dateien vor.
      *
      * @param threadPool Pool zur Ausführung der Suchen
-     * @param callback   Ruft den Callback bei jedem neu betretenen Verzeichnis auf
-     *                   (darf null sein)
+     *
      */
     protected DuplicateLengthFinder(final Cluster<Long, File> model, final ExecutorService threadPool) {
         if (model == null) {
@@ -99,21 +99,25 @@ public class DuplicateLengthFinder {
             this.callback = callback;
         }
 
-        private String checkFolder(final File folder) {
-            String exceptionMessage = null;
-            if (folder.list() == null) {
-                exceptionMessage = "FEHLER: Parameter <Verzeichnis> kann nicht aufgelistet werden: ";
-            }
-            if (!folder.canRead()) {
-                exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist nicht lesbar: ";
+        private boolean isValidFolder(final File folder) {
+            boolean isValidFolder=true;
+
+            if (!folder.exists()) {
+                isValidFolder=false;
             }
             if (!folder.isDirectory()) {
-                exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: ";
+                isValidFolder=false;
             }
-            if (!folder.exists()) {
-                exceptionMessage = "FEHLER: Parameter <Verzeichnis> existiert nicht: ";
+            if( Files.isSymbolicLink( folder.toPath()) ){
+                isValidFolder=false;
             }
-            return exceptionMessage;
+            if (!folder.canRead()) {
+                isValidFolder=false;
+            }
+            if (folder.list() == null) {
+                isValidFolder=false;
+            }
+            return isValidFolder;
         }
 
         /**
@@ -124,7 +128,7 @@ public class DuplicateLengthFinder {
          */
         @Override
         public void run() {
-            String[] contents = folder.list();
+            final String[] contents = folder.list();
             if (contents == null) {
                 if (callback != null) {
                     callback.unreadableFolder(folder);
@@ -133,11 +137,13 @@ public class DuplicateLengthFinder {
             }
 
             for (String fileName : contents) {
-                File file = new File(folder.getAbsolutePath(), fileName);
+                final File file = new File(folder, fileName);
 
-                if (file.isDirectory()) {
-                    String exceptionMessage = checkFolder(folder);
-                    if (exceptionMessage == null) {
+                if (file.isFile()) {
+                    model.addGroupedElement(Long.valueOf(file.length()), file);
+                }else{
+                    final boolean isValidFolder = isValidFolder(folder);
+                    if (isValidFolder) {
                         Thread.yield();
                         System.gc();
                         futures.add(threadPool.submit(new DuplicateLengthRunner(model, threadPool, file, callback)));
@@ -146,13 +152,9 @@ public class DuplicateLengthFinder {
                         }
                     } else {
                         if (callback != null) {
-                            callback.unreadableFolder(file);
+                            callback.skipFolder(file);
                         }
                     }
-                }
-
-                if (file.isFile()) {
-                    model.addGroupedElement(Long.valueOf(file.length()), file);
                 }
             }
             return;
