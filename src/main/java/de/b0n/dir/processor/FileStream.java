@@ -1,14 +1,14 @@
 package de.b0n.dir.processor;
 
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
+
+import javax.swing.*;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -35,10 +35,10 @@ class FileStream {
 	 * @param files In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
-	public static Queue<FileStream> pack(Collection<File> files) {
-		Queue<FileStream> fileStreams = new ConcurrentLinkedQueue<FileStream>();
-		for (File file : files) {
-			fileStreams.add(new FileStream(file));
+	public static UnmodifiableQueue<FileStream> pack(Iterator<File> files) {
+		UnmodifiableQueue<FileStream> fileStreams = new UnmodifiableQueue<>();
+		while(files.hasNext()){
+			fileStreams=fileStreams.addElement(new FileStream(files.next()));
 		}
 		return fileStreams;
 	}
@@ -51,6 +51,14 @@ class FileStream {
 		return filesQueue;
 	}
 
+	public static UnmodifiableQueue<File> convertListOfFileStreamToListOfFiles(Iterator<FileStream> fileStreams) {
+		UnmodifiableQueue<File> filesQueue = new UnmodifiableQueue();
+		while(fileStreams.hasNext()){
+			filesQueue=filesQueue.addElement(fileStreams.next().getFile());
+		}
+		return filesQueue;
+	}
+
 	/**
 	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
 	 * @param fileStreams zu schließende FileStreams
@@ -58,6 +66,16 @@ class FileStream {
 	public static void closeAll(Collection<FileStream> fileStreams) {
 		for (FileStream fileStream : fileStreams) {
 			fileStream.close();
+		}
+	}
+
+	/**
+	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
+	 * @param fileStreams zu schließende FileStreams
+	 */
+	public static void closeAll(Iterator<FileStream> fileStreams) {
+		while(fileStreams.hasNext()) {
+			fileStreams.next().close();
 		}
 	}
 
