@@ -12,7 +12,8 @@ Folgende Anforderungen sind für den Frameworknutzer zu erfüllen:
 * Das Datenmodell ist vom Frameworknutzer an sein geünschtes Datenmodell anpassbar zum Beispiel durch Vererbung.
 * Der Frameworknutzer soll Callbacks an den Suchprozess übergeben können mit deren Hilfe er über Neuigkeiten (neu zu durchsuchender Ordner, übersprungener Ordner, gefundenes Duplikat, ...) vom Framework informiert werden soll. 
 * Fehler im Datenmodell des Nutzers oder den übergebenen Callbacks dürfen den eigentlichen Suchprozess nicht beeinflussen. 
-* Der Suchprozess lässt sich über die Kombination von Prozessoren durch den Frameworknutzer verändern.
+* Der Suchprozess lässt sich über die Kombination von Prozessoren durch den Frameworknutzer willkürlich konfigurieren.
+* Der Frameworknutzer soll eigene Prozessoren implementieren und mit bestehenden im Suchprozess kombinieren können. 
 * Vom Framework ist mindestens eine Kombination an Prozessoren bereitzustellen welche das Durchsuchen riesiger Datenbestände ermöglicht  ohne das es zum Abbruch durch zu wenig Speicher (OutOfMemory Exception) oder zu viele offene Dateien (too many open file handles) kommt. Dafür muss der dabei angewendete Suchalgorithmus nicht schnell sein.
 * Weiterhin ist vom Framework mindestens eine Kombination an Prozessoren bereitzustellen mit der ein Datenbestand extrem schnell durchsucht werden kann. Sollte der zu durchsuchende Datenbestand dabei zu groß sein darf es zu einem Abbruch über technische Ausnahmen (Exceptions) kommen. 
 
@@ -25,8 +26,6 @@ Es soll untersucht werden wie sich die Architektur verändert (verbessert oder v
 * Die Sichtbarkeit private soll konsequent vermieden werden und stattdessen protected eingesetzt werden. 
 * Parameter sind soweit möglich durch fachliche Objekte als eigene Klassen zu definieren. z.B. String vorname -> Vorname vorname.
 * Der Suchalgorithmus soll durch Nebenläufigkeit maximal parallelisiert werden. 
-* Die Suche soll über eine Kette von Prozessoren erfolgen, welche vom Frameworknutzer willkürlich geschaltet werden kann. 
-* Der Frameworknutzer soll eigene Prozessoren implementieren und mit bestehenden im Suchprozess kombinieren können. 
 * Das Datenmodell soll der Anwendung beim Start übergeben werden und über die Kette an alle Prozessoren durchgereicht werden.
 * Die Daten im Datenmodell sollen zwar vom Frameworknutzer verändert werden können aber dabei muss jeweils eine Kopie der Daten entstehen, so das im Original keine Änderungen durchschlagen und die Arbeit des Suchframeworks nicht beeinflusst wird. 
 * Im Bezug zum letzten Punkt soll hier mit einem Setterfreien Datenmodell experimentiert werden. 
