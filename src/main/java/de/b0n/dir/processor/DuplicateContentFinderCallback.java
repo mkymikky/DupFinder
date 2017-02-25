@@ -3,12 +3,18 @@ package de.b0n.dir.processor;
 import java.io.File;
 import java.util.Queue;
 
-public interface DuplicateContentFinderCallback extends SuchProcessorCallback{
+public interface DuplicateContentFinderCallback extends SearchProcessorCallback {
 
-	void failedFiles(int size);
+    default void failedFiles(int size) {
+        System.out.println("Es wurden " + size + " Dateien nicht berücksichtigt (failed files).");
+    }
 
-	void duplicateGroup(Queue<File> duplicateGroup);
+    default void duplicateGroup(Queue<File> duplicateGroup){
 
-	void uniqueFiles(int uniqueFileCount);
+    }
+
+    default void uniqueFiles(int uniqueFileCount) {
+        System.out.println("Es wurden " + uniqueFileCount + " einzigartige Dateien (besitzen keine Duplikate) gefunden.");
+    }
 
 }

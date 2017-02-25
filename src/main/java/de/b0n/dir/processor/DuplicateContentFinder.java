@@ -6,9 +6,7 @@ import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.*;
 
-public class DuplicateContentFinder {
-	protected final ProcessorID ID=new ProcessorID(this.getClass().getName());
-
+public class DuplicateContentFinder extends AbstractSearchProcessor {
 	private static final Integer FINISHED = Integer.valueOf(-1);
 	private static final Integer FAILING = Integer.valueOf(-2);
 

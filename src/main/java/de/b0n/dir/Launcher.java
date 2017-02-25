@@ -1,6 +1,7 @@
 package de.b0n.dir;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Queue;
 
@@ -62,7 +63,7 @@ public class Launcher {
 
         final Cluster<Long, File> model = new Cluster<>();
         final Launcher launcher = new Launcher(model);
-        final Queue<Queue<File>> duplicates = launcher.searchDuplicatesIn(folder, new Callback());
+        final Queue<Queue<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
         launcher.printQueues(duplicates);
 
     }
@@ -91,60 +92,4 @@ public class Launcher {
         System.out.println( file.getAbsolutePath());
     }
 
-
-    protected static class Callback implements DupFinderCallback {
-
-        /**
-         * LengthFinderCallback
-         *
-         */
-
-        @Override
-        public void enteredNewFolder(File folder) {
-            System.out.println("Scanne "+folder.getAbsolutePath());
-        }
-
-        @Override
-        public void unreadableFolder(File folder) {
-            System.err.println("Warning: Folder nicht lesbar: "+folder.getAbsolutePath());
-
-        }
-
-        @Override
-        public void skipFolder(File folder) {
-            System.out.println("Warning: Folder wird übersprungen: "+folder.getAbsolutePath());
-        }
-
-
-        /**
-         * ContentFinderCallback
-         *
-         */
-
-
-        @Override
-        public void failedFiles(int size) {
-            System.out.println("Es wurden "+size+" Dateien nicht berücksichtigt (failed files).");
-        }
-
-        @Override
-        public void duplicateGroup(Queue<File> duplicateGroup) {
-
-        }
-
-        @Override
-        public void uniqueFiles(int uniqueFileCount) {
-            System.out.println("Es wurden "+uniqueFileCount+" einzigartige Dateien (besitzen keine Duplikate) gefunden.");
-        }
-
-        @Override
-        public void processorStartAt(ProcessorID id, Date date) {
-            System.out.println("Processor "+id+" gestartet.");
-        }
-
-        @Override
-        public void processorEndsAt(ProcessorID id, Date date) {
-            System.out.println("Processor "+id+" beendet.");
-        }
-    }
 }

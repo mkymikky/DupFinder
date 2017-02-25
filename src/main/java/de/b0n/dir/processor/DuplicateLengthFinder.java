@@ -18,16 +18,11 @@ import java.util.concurrent.Future;
  *
  * @author Claus
  */
-public class DuplicateLengthFinder {
-
-    protected final ProcessorID ID=new ProcessorID(this.getClass().getName());
-
+public class DuplicateLengthFinder extends AbstractSearchProcessor {
     protected final Cluster<Long, File> model;
     protected final ExecutorService threadPool;
 
     protected static final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
-    protected static final DupFinderCallback DUMMY_CALLBACK = new DummyCallback();
-
 
     /**
      * Bereitet für das gegebene Verzeichnis die Suche nach gleich großen
