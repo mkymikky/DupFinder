@@ -1,6 +1,6 @@
 package de.b0n.dir.processor;
 
-import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 import de.b0n.dir.DupFinderCallback;
 
 import java.io.File;
@@ -17,7 +17,7 @@ public class DupFinder {
         this.model = model;
     }
 
-    public Queue<UnmodifiableQueue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback){
+    public Queue<UnmodifiableQueueLIFO<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback){
         final DuplicateLengthFinder lengthFinder = new DuplicateLengthFinder(this.model);
         lengthFinder.readFilesRecursiveOf(folder,callback);
         final DuplicateContentFinder contentFinder = new DuplicateContentFinder(this.model,callback);

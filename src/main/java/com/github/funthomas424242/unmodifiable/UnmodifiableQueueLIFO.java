@@ -1,30 +1,28 @@
 package com.github.funthomas424242.unmodifiable;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.Queue;
 
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public class UnmodifiableQueue<E> implements IQueue<UnmodifiableQueue, E> {
+public class UnmodifiableQueueLIFO<E> implements IQueue<UnmodifiableQueueLIFO, E> {
 
     protected final Link<E> root;
     protected final int size;
 
-    protected UnmodifiableQueue(UnmodifiableQueue predecessorQueue, E element) {
+    protected UnmodifiableQueueLIFO(UnmodifiableQueueLIFO predecessorQueue, E element) {
         this.root = new Link<>(predecessorQueue.root, element);
         this.size = predecessorQueue.size + 1;
     }
 
-    public UnmodifiableQueue() {
+    public UnmodifiableQueueLIFO() {
         this.root = null;
         this.size = 0;
     }
 
     @Override
-    public UnmodifiableQueue<E> addElement(final E element) {
-        return new UnmodifiableQueue<>(this, element);
+    public UnmodifiableQueueLIFO<E> addElement(final E element) {
+        return new UnmodifiableQueueLIFO<>(this, element);
     }
 
     @Override

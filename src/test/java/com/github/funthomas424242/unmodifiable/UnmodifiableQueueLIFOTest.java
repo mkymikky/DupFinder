@@ -9,12 +9,12 @@ import static org.junit.Assert.*;
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public class UnmodifiableQueueTest {
+public class UnmodifiableQueueLIFOTest {
 
 
     @Test
     public void erstelleLeeresListenObjekt() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<>();
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<>();
         assertNotNull(queue);
         assertEquals(0, queue.size());
         assertTrue(queue.isEmpty());
@@ -22,10 +22,10 @@ public class UnmodifiableQueueTest {
 
     @Test
     public void fuegeEintragZuLeererListeHinzu() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<>();
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<>();
         assertNotNull(queue);
         assertEquals(0, queue.size());
-        final UnmodifiableQueue<String> newQueue = queue.addElement("Hallo");
+        final UnmodifiableQueueLIFO<String> newQueue = queue.addElement("Hallo");
         assertNotNull(newQueue);
         assertEquals(1, newQueue.size());
         assertFalse(newQueue.isEmpty());
@@ -36,8 +36,8 @@ public class UnmodifiableQueueTest {
 
     @Test
     public void fuegeNullEintragZuLeererListeHinzu() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<>();
-        final UnmodifiableQueue<String> newQueue = queue.addElement(null);
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<>();
+        final UnmodifiableQueueLIFO<String> newQueue = queue.addElement(null);
         assertNotNull(newQueue);
         assertEquals(1, newQueue.size());
         assertFalse(newQueue.isEmpty());
@@ -49,8 +49,8 @@ public class UnmodifiableQueueTest {
 
     @Test
     public void fuegeDreiEintraegeZurLeerenListeHinzu() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<>();
-        final UnmodifiableQueue<String> newQueue = queue.addElement(null).addElement("Heinz").addElement("Karl");
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<>();
+        final UnmodifiableQueueLIFO<String> newQueue = queue.addElement(null).addElement("Heinz").addElement("Karl");
         assertNotNull(newQueue);
         assertEquals(3, newQueue.size());
         // alte Kette unverändert
@@ -60,7 +60,7 @@ public class UnmodifiableQueueTest {
 
     @Test
     public void peekLiefertDasLetzteEingefuegteElement() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<String>()
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
         final String lastElement=queue.peek();
         assertEquals("Karl",lastElement);
@@ -68,7 +68,7 @@ public class UnmodifiableQueueTest {
 
     @Test
     public void iteratorLiefertElementeLIFO() {
-        final UnmodifiableQueue<String> queue = new UnmodifiableQueue<String>()
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
        final Iterator<String> iterator=queue.iterator();
        while(iterator.hasNext()){
