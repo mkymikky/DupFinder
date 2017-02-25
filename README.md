@@ -20,7 +20,7 @@ Folgende Anforderungen sind für den Frameworknutzer zu erfüllen:
 
 ## Technologische Anforderungen
 Es soll untersucht werden wie sich die Architektur verändert (verbessert oder verschlechtert) wenn folgende Design Regeln angewendet werden:
-* Im Programm soll es nur eine statische main Method zum Start der Anwendung per Kommandozeile geben.
+* Im Programm soll es nur eine statische main Methode zum Start der Anwendung per Kommandozeile geben.
 * Sonstige statische Methoden und Attribute sind auf ein Minimum zu reduzieren falls sie nicht komplett eliminiert werden können.
 * Die Sichtbarkeit private soll konsequent vermieden werden und stattdessen protected eingesetzt werden. 
 * Parameter sind soweit möglich durch fachliche Objekte als eigene Klassen zu definieren. z.B. String vorname -> Vorname vorname.
@@ -37,6 +37,5 @@ Es soll untersucht werden wie sich die Architektur verändert (verbessert oder v
 Bei der Entwicklung ist von folgenden Stakeholder Gruppen auszugehen:
 * Frameworknutzer mit native GUI Anwendung (z.B. Swing)
 * Frameworknutzer mit Web GUI Anwendung (z.B. SPA via HTML)
-* Open Source Entwickler im Internet
-* Owner anderer Open Source Projekte
-* 
+* Owner anderer Open Source Projekte (z.B. Owner des DupFinder Projektes)
+* Weitere Open Source Contributoren im Internet
