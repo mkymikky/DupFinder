@@ -4,6 +4,7 @@ import de.b0n.dir.DupFinderCallback;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -18,6 +19,8 @@ import java.util.concurrent.Future;
  * @author Claus
  */
 public class DuplicateLengthFinder {
+
+    protected final ProcessorID ID=new ProcessorID(this.getClass().getName());
 
     protected final Cluster<Long, File> model;
     protected final ExecutorService threadPool;
@@ -68,7 +71,9 @@ public class DuplicateLengthFinder {
         } else {
             futures.add(threadPool.submit(new DuplicateLengthRunner(this.model,this.threadPool, folder, callback)));
         }
+        callback.processorStartAt(ID,new Date());
         this.execute(folder);
+        callback.processorEndsAt(ID,new Date());
     }
 
 

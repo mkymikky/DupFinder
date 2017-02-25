@@ -1,6 +1,7 @@
 package de.b0n.dir;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Queue;
 
 import de.b0n.dir.processor.*;
@@ -123,7 +124,7 @@ public class Launcher {
 
         @Override
         public void failedFiles(int size) {
-
+            System.out.println("Es wurden "+size+" Dateien nicht berücksichtigt (failed files).");
         }
 
         @Override
@@ -133,8 +134,17 @@ public class Launcher {
 
         @Override
         public void uniqueFiles(int uniqueFileCount) {
-
+            System.out.println("Es wurden "+uniqueFileCount+" einzigartige Dateien (besitzen keine Duplikate) gefunden.");
         }
 
+        @Override
+        public void processorStartAt(ProcessorID id, Date date) {
+            System.out.println("Processor "+id+" gestartet.");
+        }
+
+        @Override
+        public void processorEndsAt(ProcessorID id, Date date) {
+            System.out.println("Processor "+id+" beendet.");
+        }
     }
 }

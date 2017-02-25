@@ -3,6 +3,7 @@ package de.b0n.dir.processor;
 import de.b0n.dir.DupFinderCallback;
 
 import java.io.File;
+import java.util.Date;
 import java.util.Queue;
 
 /**
@@ -36,6 +37,16 @@ public class DummyCallback implements DupFinderCallback{
 
     @Override
     public void skipFolder(File folder) {
+
+    }
+
+    @Override
+    public void processorStartAt(ProcessorID id, Date date) {
+        
+    }
+
+    @Override
+    public void processorEndsAt(ProcessorID id, Date date) {
 
     }
 }

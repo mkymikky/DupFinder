@@ -2,10 +2,13 @@ package de.b0n.dir.processor;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.*;
 
 public class DuplicateContentFinder {
+	protected final ProcessorID ID=new ProcessorID(this.getClass().getName());
+
 	private static final Integer FINISHED = Integer.valueOf(-1);
 	private static final Integer FAILING = Integer.valueOf(-2);
 
@@ -44,7 +47,10 @@ public class DuplicateContentFinder {
 			throw new IllegalArgumentException("input may not be null.");
 		}
 
-		return execute();
+		callback.processorStartAt(ID,new Date());
+		final Queue<Queue<File>> duplicates=this.execute();
+		callback.processorEndsAt(ID,new Date());
+		return duplicates;
 	}
 
 

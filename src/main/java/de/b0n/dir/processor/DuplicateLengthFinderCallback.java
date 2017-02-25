@@ -1,6 +1,7 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
+import java.util.Date;
 
 /**
  * Ermöglicht das Tracking des aktuellen Fortschritts auf Verzeichnisebene.
@@ -8,7 +9,7 @@ import java.io.File;
  * @author Claus
  *
  */
-public interface DuplicateLengthFinderCallback {
+public interface DuplicateLengthFinderCallback extends SuchProcessorCallback{
 
 	/**
 	 * Wird aufgerufen, sobald ein neues zu durchsuchendes Verzeichnis erkannt wurde

@@ -3,7 +3,7 @@ package de.b0n.dir.processor;
 import java.io.File;
 import java.util.Queue;
 
-public interface DuplicateContentFinderCallback {
+public interface DuplicateContentFinderCallback extends SuchProcessorCallback{
 
 	void failedFiles(int size);
 
