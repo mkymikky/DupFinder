@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -18,6 +20,15 @@ class FileStream {
 
 	private final File file;
 	private BufferedInputStream stream;
+
+	protected static Set<File> fileHandles=new HashSet<>();
+
+//	public static File newFile(final String path){
+//	    final int count=fileHandles.size();
+//
+//		final File file = new File(path);
+//		fileHandles.add(file);
+//	}
 
 	/**
 	 * Packt die Collection von Dateien in jeweils in einen FileStream, zusammengefasst in einer Queue.
