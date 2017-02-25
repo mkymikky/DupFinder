@@ -25,6 +25,7 @@ Es soll untersucht werden wie sich die Architektur verändert (verbessert oder v
 * Sonstige statische Methoden und Attribute sind auf ein Minimum zu reduzieren falls sie nicht komplett eliminiert werden können.
 * Die Sichtbarkeit private soll konsequent vermieden werden und stattdessen protected eingesetzt werden. 
 * Parameter sind soweit möglich durch fachliche Objekte als eigene Klassen zu definieren. z.B. String vorname -> Vorname vorname.
+* Die Einhaltung der law of demeter ist konsequent zu beachten.
 * Der Suchalgorithmus soll durch Nebenläufigkeit maximal parallelisiert werden. 
 * Das Datenmodell soll der Anwendung beim Start übergeben werden und über die Kette an alle Prozessoren durchgereicht werden.
 * Die Daten im Datenmodell sollen zwar vom Frameworknutzer verändert werden können aber dabei muss jeweils eine Kopie der Daten entstehen, so das im Original keine Änderungen durchschlagen und die Arbeit des Suchframeworks nicht beeinflusst wird. 
