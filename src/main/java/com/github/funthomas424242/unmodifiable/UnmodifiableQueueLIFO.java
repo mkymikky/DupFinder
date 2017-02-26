@@ -46,10 +46,10 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
     }
 
     @Override
-    public UnmodifiableQueueLIFO<E> removeElement(){
-        if(isEmpty()){
+    public UnmodifiableQueueLIFO<E> removeElement() {
+        if (isEmpty()) {
             return null;
-        }else {
+        } else {
             return new UnmodifiableQueueLIFO<E>(root.getPredecessor(), size - 1);
         }
     }
@@ -66,9 +66,9 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
 
     @Override
     public E peek() {
-        if(isEmpty()){
+        if (isEmpty()) {
             return null;
-        }else {
+        } else {
             return root.getElement();
         }
     }
@@ -93,6 +93,18 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
         };
     }
 
+    @Override
+    public Object[] toArray() {
+        final Object[] elements=new Object[size()];
+        final Iterator<E> iterator = this.iterator();
+        int index=0;
+        while(iterator.hasNext()){
+            elements[index]=iterator.next();
+            index++;
+        }
+        return elements;
+    }
+
 
 //
 //    @Override
@@ -101,10 +113,7 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
 //    }
 //
 //
-//    @Override
-//    public Object[] toArray() {
-//        return new Object[0];
-//    }
+
 //
 //    @Override
 //    public <T> T[] toArray(T[] a) {

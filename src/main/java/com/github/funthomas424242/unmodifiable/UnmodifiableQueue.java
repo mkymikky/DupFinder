@@ -19,5 +19,7 @@ public interface UnmodifiableQueue<Q,E> {
 
     E peek();
 
+    Object[] toArray();
+
 
 }

@@ -111,4 +111,15 @@ public class UnmodifiableQueueLIFOTest {
         assertEquals(0, queue.size());
     }
 
+    @Test
+    public void toArrayGibtEinGefuelltesObjectArrayZurueck() {
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
+                .addElement(null).addElement("Heinz").addElement("Karl").addElement("Mark");
+        final int size = queue.size();
+        assertEquals(4,size);
+        final Object[] elements=queue.toArray();
+        assertNotNull(elements);
+        assertEquals(size,elements.length);
+    }
+
 }
