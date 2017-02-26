@@ -16,17 +16,18 @@ public interface SearchProcessorCallback {
      * @param date
      */
     default void processorStartAt(final ProcessorID id, final Date date){
-        System.out.println("Processor "+id+" gestartet um "+ DATE_FORMATTER.format(date)+" .");
+        System.out.println("Processor "+id+" gestartet am "+ DATE_FORMATTER.format(date)+" .");
     }
 
 
     /**
      * Wird aufgerufen wenn der Processor seine Arbeit beendet
      *
-     * @param date
+     * @param endDate
      */
-    default void processorEndsAt(final ProcessorID id, final Date date){
-        System.out.println("Processor "+id+" beendet um "+DATE_FORMATTER.format(date)+" .");
+    default void processorEndsAt(final ProcessorID id, final Date startDate, final Date endDate){
+        final double dauerInMillisekunden=(endDate.getTime() - startDate.getTime())/1000D;
+        System.out.println("Processor "+id+" arbeitete "+dauerInMillisekunden+" Sekunden von "+DATE_FORMATTER.format(startDate)+" bis "+DATE_FORMATTER.format(endDate)+" .");
     }
 
 

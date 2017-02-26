@@ -49,9 +49,10 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
             throw new IllegalArgumentException("input may not be null.");
         }
 
-        callback.processorStartAt(ID, new Date());
+        final Date startDate =  new Date();
+        callback.processorStartAt(ID,startDate);
         final Queue<UnmodifiableQueueLIFO<File>> duplicates = this.execute();
-        callback.processorEndsAt(ID, new Date());
+        callback.processorEndsAt(ID, startDate, new Date());
         return duplicates;
     }
 

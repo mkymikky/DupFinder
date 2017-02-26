@@ -66,9 +66,10 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
         } else {
             futures.add(threadPool.submit(new DuplicateLengthRunner(this.model,this.threadPool, folder, callback)));
         }
-        callback.processorStartAt(ID,new Date());
+        final Date startDate = new Date();
+        callback.processorStartAt(ID,startDate);
         this.execute(folder);
-        callback.processorEndsAt(ID,new Date());
+        callback.processorEndsAt(ID,startDate,new Date());
     }
 
 
