@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public class UnmodifiableQueueLIFO<E> implements IQueue<UnmodifiableQueueLIFO, E> {
+public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQueueLIFO, E> {
 
     protected final Link<E> root;
     protected final int size;

@@ -5,7 +5,7 @@ import java.util.Iterator;
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public interface IQueue<Q,E> {
+public interface UnmodifiableQueue<Q,E> {
 
     Q addElement(final E element);
 

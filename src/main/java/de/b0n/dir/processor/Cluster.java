@@ -1,6 +1,6 @@
 package de.b0n.dir.processor;
 
-import com.github.funthomas424242.unmodifiable.IQueue;
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 
 import java.util.Collection;
@@ -65,8 +65,8 @@ public class Cluster<G, E> {
      * @return Liefert die in der Map enthaltene Gruppe oder eine neue, der Map
      * mit diesem Key hinzugefügten Gruppe
      */
-    private IQueue<UnmodifiableQueueLIFO,E> addElementToGroup(G group, E element) {
-        IQueue<UnmodifiableQueueLIFO,E> elements;
+    private UnmodifiableQueue<UnmodifiableQueueLIFO,E> addElementToGroup(G group, E element) {
+        UnmodifiableQueue<UnmodifiableQueueLIFO,E> elements;
         synchronized (this) {
             elements = map.get(group);
             if (elements == null) {
