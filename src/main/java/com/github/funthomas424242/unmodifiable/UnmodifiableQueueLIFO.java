@@ -47,7 +47,11 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
 
     @Override
     public UnmodifiableQueueLIFO<E> removeElement(){
-        return new UnmodifiableQueueLIFO<E>(root.getPredecessor(),size -1);
+        if(isEmpty()){
+            return null;
+        }else {
+            return new UnmodifiableQueueLIFO<E>(root.getPredecessor(), size - 1);
+        }
     }
 
     @Override

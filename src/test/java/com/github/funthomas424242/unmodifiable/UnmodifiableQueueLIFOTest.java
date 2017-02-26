@@ -62,14 +62,14 @@ public class UnmodifiableQueueLIFOTest {
     public void peekLiefertDasLetzteEingefuegteElement() {
         final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
-        final String lastElement=queue.peek();
-        assertEquals("Karl",lastElement);
+        final String lastElement = queue.peek();
+        assertEquals("Karl", lastElement);
     }
 
     @Test
     public void peekLiefertNullBeiLeererQueue() {
         final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>();
-        final String lastElement=queue.peek();
+        final String lastElement = queue.peek();
         assertNull(lastElement);
     }
 
@@ -77,14 +77,38 @@ public class UnmodifiableQueueLIFOTest {
     public void iteratorLiefertElementeLIFO() {
         final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
-       final Iterator<String> iterator=queue.iterator();
-       while(iterator.hasNext()){
-           assertEquals("Karl",iterator.next());
-           assertEquals("Heinz",iterator.next());
-           assertNull(iterator.next());
-           assertFalse(iterator.hasNext());
-       }
+        final Iterator<String> iterator = queue.iterator();
+        assertTrue(iterator.hasNext());
+        assertEquals("Karl", iterator.next());
+        assertTrue(iterator.hasNext());
+        assertEquals("Heinz", iterator.next());
+        assertTrue(iterator.hasNext());
+        assertNull(iterator.next());
         assertFalse(iterator.hasNext());
+        assertFalse(iterator.hasNext());
+    }
+
+    @Test
+    public void removeLiefertEineUmsEinsKleinereKette() {
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
+                .addElement("1").addElement("2").addElement("3");
+        assertEquals(3, queue.size());
+        final UnmodifiableQueue<UnmodifiableQueueLIFO,String> newQueue = queue.removeElement();
+        assertNotNull(newQueue);
+        assertEquals(2,newQueue.size());
+        assertEquals("2",newQueue.peek());
+        // alte Kette unverändert
+        assertEquals(3, queue.size());
+    }
+
+    @Test
+    public void removeAufLeereKetteLiefertNull() {
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>();
+        assertEquals(0, queue.size());
+        final UnmodifiableQueue<UnmodifiableQueueLIFO,String> newQueue = queue.removeElement();
+        assertNull(newQueue);
+        // alte Kette unverändert
+        assertEquals(0, queue.size());
     }
 
 }
