@@ -67,6 +67,13 @@ public class UnmodifiableQueueLIFOTest {
     }
 
     @Test
+    public void peekLiefertNullBeiLeererQueue() {
+        final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>();
+        final String lastElement=queue.peek();
+        assertNull(lastElement);
+    }
+
+    @Test
     public void iteratorLiefertElementeLIFO() {
         final UnmodifiableQueueLIFO<String> queue = new UnmodifiableQueueLIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");

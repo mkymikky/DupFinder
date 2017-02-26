@@ -10,11 +10,31 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
     protected final Link<E> root;
     protected final int size;
 
+    /**
+     * Konstruiert eine neue Queue durch Anhängen eines Elements an eine bestehende Queue.
+     *
+     * @param predecessorQueue
+     * @param element
+     */
     protected UnmodifiableQueueLIFO(UnmodifiableQueueLIFO predecessorQueue, E element) {
         this.root = new Link<>(predecessorQueue.root, element);
         this.size = predecessorQueue.size + 1;
     }
 
+    /**
+     * Konstruiert eine neue Queue ab einem bestimmten breits existierenden Kettenglied.
+     *
+     * @param rootLink
+     * @param size
+     */
+    protected UnmodifiableQueueLIFO(final Link<E> rootLink, final int size) {
+        this.root = rootLink;
+        this.size = size;
+    }
+
+    /**
+     * Konstruiert eine leer Queue.
+     */
     public UnmodifiableQueueLIFO() {
         this.root = null;
         this.size = 0;
@@ -23,6 +43,11 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
     @Override
     public UnmodifiableQueueLIFO<E> addElement(final E element) {
         return new UnmodifiableQueueLIFO<>(this, element);
+    }
+
+    @Override
+    public UnmodifiableQueueLIFO<E> removeElement(){
+        return new UnmodifiableQueueLIFO<E>(root.getPredecessor(),size -1);
     }
 
     @Override
@@ -37,7 +62,11 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
 
     @Override
     public E peek() {
-        return root.getElement();
+        if(isEmpty()){
+            return null;
+        }else {
+            return root.getElement();
+        }
     }
 
     @Override
@@ -45,7 +74,6 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
         return new Iterator<E>() {
 
             Link<E> curLink = root;
-
 
             @Override
             public boolean hasNext() {

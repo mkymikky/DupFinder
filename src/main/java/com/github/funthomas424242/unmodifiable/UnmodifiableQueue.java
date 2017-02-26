@@ -9,6 +9,8 @@ public interface UnmodifiableQueue<Q,E> {
 
     Q addElement(final E element);
 
+    Q removeElement();
+
     Iterator<E> iterator();
 
     int size();
