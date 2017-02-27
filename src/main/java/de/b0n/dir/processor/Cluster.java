@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @author Claus
  */
 public class Cluster<G, E> {
-    private final Map<G, UnmodifiableQueueLIFO<E>> map = new ConcurrentHashMap<>();
+    private final Map<G, UnmodifiableQueue<E>> map = new ConcurrentHashMap<>();
 
     /**
      * Filtert Gruppen mit nur einem Element heraus.
@@ -29,9 +29,9 @@ public class Cluster<G, E> {
         final Queue<E> uniques = new ConcurrentLinkedQueue<E>();
         synchronized (this) {
             for (G group : map.keySet()) {
-                UnmodifiableQueueLIFO<E> elements = map.get(group);
+                UnmodifiableQueue<E> elements = map.get(group);
                 if (elements.size() <= 1) {
-                    UnmodifiableQueueLIFO<E> removedGroup = map.remove(group);
+                    UnmodifiableQueue<E> removedGroup = map.remove(group);
                     if (removedGroup.size() == 1) {
                         uniques.add(removedGroup.peek());
                     }
@@ -65,8 +65,8 @@ public class Cluster<G, E> {
      * @return Liefert die in der Map enthaltene Gruppe oder eine neue, der Map
      * mit diesem Key hinzugefügten Gruppe
      */
-    private UnmodifiableQueue<UnmodifiableQueueLIFO,E> addElementToGroup(G group, E element) {
-        UnmodifiableQueue<UnmodifiableQueueLIFO,E> elements;
+    private UnmodifiableQueue<E> addElementToGroup(G group, E element) {
+        UnmodifiableQueue<E> elements;
         synchronized (this) {
             elements = map.get(group);
             if (elements == null) {
@@ -85,7 +85,7 @@ public class Cluster<G, E> {
      *
      * @return Collection mit den Queues der Elemente
      */
-    public Collection<UnmodifiableQueueLIFO<E>> values() {
+    public Collection<UnmodifiableQueue<E>> values() {
         return map.values();
     }
 
@@ -105,7 +105,7 @@ public class Cluster<G, E> {
      * @param group Gruppe, deren Elemente als Queue zurückgeliefert werden
      * @return Queue mit den Elementen der angegebenen Gruppe
      */
-    public UnmodifiableQueueLIFO<E> getGroup(G group) {
+    public UnmodifiableQueue<E> getGroup(G group) {
         return map.get(group);
     }
 
@@ -115,7 +115,7 @@ public class Cluster<G, E> {
      * @param group Zu entfernende Gruppe
      * @return Queues der entfernten Elemente
      */
-    public UnmodifiableQueueLIFO<E> removeGroup(G group) {
+    public UnmodifiableQueue<E> removeGroup(G group) {
         synchronized (this) {
             return map.remove(group);
         }
@@ -130,7 +130,7 @@ public class Cluster<G, E> {
      */
     public int size() {
         int size = 0;
-        for (UnmodifiableQueueLIFO<E> group : values()) {
+        for (UnmodifiableQueue<E> group : values()) {
             size += group.size();
             if (size < 0) {
                 size = Integer.MAX_VALUE;
@@ -144,7 +144,7 @@ public class Cluster<G, E> {
      *
      * @return Elemente der ersten verfügbaren Gruppe
      */
-    public UnmodifiableQueueLIFO<E> popGroup() {
+    public UnmodifiableQueue<E> popGroup() {
         synchronized (this) {
             Iterator<G> iterator = map.keySet().iterator();
             if (iterator.hasNext()) {

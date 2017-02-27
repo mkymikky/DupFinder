@@ -1,5 +1,6 @@
 package de.b0n.dir.processor;
 
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 
 import java.io.File;
@@ -10,7 +11,7 @@ public interface DuplicateContentFinderCallback extends SearchProcessorCallback 
         System.out.println("Es wurden " + size + " Dateien nicht berücksichtigt (failed files).");
     }
 
-    default void duplicateGroup(UnmodifiableQueueLIFO<File> duplicateGroup){
+    default void duplicateGroup(UnmodifiableQueue<File> duplicateGroup){
 
     }
 

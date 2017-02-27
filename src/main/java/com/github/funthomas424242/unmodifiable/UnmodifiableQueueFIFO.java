@@ -5,9 +5,11 @@ import java.util.Iterator;
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
+// TODO Implementierung falsch
+public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
 
     protected final Link<E> root;
+    protected final Link<E> firstChainLink;
     protected final int size;
 
     /**
@@ -16,42 +18,54 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
      * @param predecessorQueue
      * @param element
      */
-    protected UnmodifiableQueueLIFO(UnmodifiableQueueLIFO<E> predecessorQueue, E element) {
+    protected UnmodifiableQueueFIFO(UnmodifiableQueueFIFO<E> predecessorQueue, E element) {
         this.root = new Link<E>(predecessorQueue.root, element);
         this.size = predecessorQueue.size + 1;
+        if (predecessorQueue.firstChainLink == null) {
+            this.firstChainLink = root;
+        } else {
+            this.firstChainLink = predecessorQueue.firstChainLink;
+        }
     }
 
     /**
      * Konstruiert eine neue Queue ab einem bestimmten breits existierenden Kettenglied.
      *
      * @param rootLink
+     * @param firstChainLink
      * @param size
      */
-    protected UnmodifiableQueueLIFO(final Link<E> rootLink, final int size) {
+    protected UnmodifiableQueueFIFO(final Link<E> rootLink, final Link<E> firstChainLink, final int size) {
         this.root = rootLink;
+        this.firstChainLink = firstChainLink;
         this.size = size;
     }
 
     /**
      * Konstruiert eine leer Queue.
      */
-    public UnmodifiableQueueLIFO() {
+    public UnmodifiableQueueFIFO() {
         this.root = null;
+        this.firstChainLink = null;
         this.size = 0;
     }
 
     @Override
-    public UnmodifiableQueue<E> addElement(final E element) {
+    public UnmodifiableQueueFIFO<E> addElement(final E element) {
 
-        return new UnmodifiableQueueLIFO<E>(this, element);
+        return new UnmodifiableQueueFIFO<E>(this, element);
     }
 
     @Override
-    public UnmodifiableQueue<E> removeElement() {
+    public UnmodifiableQueue<E>  removeElement() {
         if (isEmpty()) {
             return null;
         } else {
-            return (UnmodifiableQueue<E>) new UnmodifiableQueueLIFO<E>(root.getPredecessor(), size - 1);
+            if(size()==1) {
+                return new UnmodifiableQueueFIFO<E>(root.getPredecessor(), null, size - 1);
+            }else {
+                return new UnmodifiableQueueFIFO<E>(root.getPredecessor(), firstChainLink, size - 1);
+            }
         }
     }
 
@@ -78,6 +92,7 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
     public Iterator<E> iterator() {
         return new Iterator<E>() {
 
+            // TODO Implementierung falsch
             Link<E> curLink = root;
 
             @Override
@@ -96,11 +111,11 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
 
     @Override
     public Object[] toArray() {
-        final Object[] elements=new Object[size()];
+        final Object[] elements = new Object[size()];
         final Iterator<E> iterator = this.iterator();
-        int index=0;
-        while(iterator.hasNext()){
-            elements[index]=iterator.next();
+        int index = 0;
+        while (iterator.hasNext()) {
+            elements[index] = iterator.next();
             index++;
         }
         return elements;
@@ -192,10 +207,12 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
     protected class Link<ET> {
 
         protected Link<ET> predecessor;
+        //        protected Link startLink;
         protected ET element;
 
         protected Link(final Link<ET> predecessor, final ET element) {
             this.predecessor = predecessor;
+//            this.startLink = startLink;
             this.element = element;
         }
 
@@ -206,6 +223,8 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<E> {
         protected ET getElement() {
             return this.element;
         }
+
+//        protected  Link getStartLink() {return this.startLink;}
 
     }
 

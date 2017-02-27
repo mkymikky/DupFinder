@@ -1,5 +1,6 @@
 package de.b0n.dir.processor;
 
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 
 import java.io.BufferedInputStream;
@@ -34,8 +35,8 @@ class FileStream {
 	 * @param files In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
-	public static UnmodifiableQueueLIFO<FileStream> pack(Iterator<File> files) {
-		UnmodifiableQueueLIFO<FileStream> fileStreams = new UnmodifiableQueueLIFO<>();
+	public static UnmodifiableQueue<FileStream> pack(Iterator<File> files) {
+		UnmodifiableQueue<FileStream> fileStreams = new UnmodifiableQueueLIFO<>();
 		while(files.hasNext()){
 			fileStreams=fileStreams.addElement(new FileStream(files.next()));
 		}
@@ -50,8 +51,8 @@ class FileStream {
 		return filesQueue;
 	}
 
-	public static UnmodifiableQueueLIFO<File> convertListOfFileStreamToListOfFiles(Iterator<FileStream> fileStreams) {
-		UnmodifiableQueueLIFO<File> filesQueue = new UnmodifiableQueueLIFO();
+	public static UnmodifiableQueue<File> convertListOfFileStreamToListOfFiles(Iterator<FileStream> fileStreams) {
+		UnmodifiableQueue<File> filesQueue = new UnmodifiableQueueLIFO();
 		while(fileStreams.hasNext()){
 			filesQueue=filesQueue.addElement(fileStreams.next().getFile());
 		}

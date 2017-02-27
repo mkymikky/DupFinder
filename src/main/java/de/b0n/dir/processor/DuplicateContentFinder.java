@@ -1,5 +1,6 @@
 package de.b0n.dir.processor;
 
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 
 import java.io.File;
@@ -18,7 +19,7 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
     private final ExecutorService threadPool;
     private final DuplicateContentFinderCallback callback;
 
-    private final Queue<UnmodifiableQueueLIFO<File>> result = new ConcurrentLinkedQueue<>();
+    private final Queue<UnmodifiableQueue<File>> result = new ConcurrentLinkedQueue<>();
     private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<>();
 
     protected DuplicateContentFinder(final Cluster<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
@@ -41,7 +42,7 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
      * @param callback   Optionaler Callback, um über den Fortschritt der Dublettensuche informiert zu werden
      * @return Nach inhaltlichen Dubletten gruppierte File-Listen
      */
-    public Queue<UnmodifiableQueueLIFO<File>> determineDuplicates() {
+    public Queue<UnmodifiableQueue<File>> determineDuplicates() {
         if (threadPool == null) {
             throw new IllegalArgumentException("threadPool may not be null.");
         }
@@ -51,17 +52,17 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
 
         final Date startDate =  new Date();
         callback.processorStartAt(ID,startDate);
-        final Queue<UnmodifiableQueueLIFO<File>> duplicates = this.execute();
+        final Queue<UnmodifiableQueue<File>> duplicates = this.execute();
         callback.processorEndsAt(ID, startDate, new Date());
         return duplicates;
     }
 
 
-    private Queue<UnmodifiableQueueLIFO<File>> execute() {
+    private Queue<UnmodifiableQueue<File>> execute() {
 
-        final Collection<UnmodifiableQueueLIFO<File>> input = this.model.values();
+        final Collection<UnmodifiableQueue<File>> input = this.model.values();
 
-        for (UnmodifiableQueueLIFO<File> files : input) {
+        for (UnmodifiableQueue<File> files : input) {
             futures.add(threadPool.submit(new DuplicateContentRunner(FileStream.pack(files.iterator()))));
         }
 
@@ -77,9 +78,9 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
     }
 
     private class DuplicateContentRunner implements Runnable {
-        private UnmodifiableQueueLIFO<FileStream> inputFileStreams;
+        private UnmodifiableQueue<FileStream> inputFileStreams;
 
-        private DuplicateContentRunner(UnmodifiableQueueLIFO<FileStream> inputFileStreams) {
+        private DuplicateContentRunner(UnmodifiableQueue<FileStream> inputFileStreams) {
             this.inputFileStreams = inputFileStreams;
         }
 
@@ -107,7 +108,7 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
                     }
 
                     // Finished Streams
-                    UnmodifiableQueueLIFO<FileStream> finishedFiles = null;
+                    UnmodifiableQueue<FileStream> finishedFiles = null;
                     if (sortedFiles.containsGroup(FINISHED)) {
                         finishedFiles = sortedFiles.removeGroup(FINISHED);
                         result.add(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
@@ -121,14 +122,14 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
                     inputFileStreams = sortedFiles.popGroup();
 
                     // Outsource other groups
-                    for (UnmodifiableQueueLIFO<FileStream> fileStreams : sortedFiles.values()) {
+                    for (UnmodifiableQueue<FileStream> fileStreams : sortedFiles.values()) {
                         futures.add(threadPool.submit(new DuplicateContentRunner(fileStreams)));
                     }
                 }
             } catch (Exception e) {
                 FileStream.closeAll(inputFileStreams.iterator());
                 if (sortedFiles != null) {
-                    for (UnmodifiableQueueLIFO<FileStream> fileStreams : sortedFiles.values()) {
+                    for (UnmodifiableQueue<FileStream> fileStreams : sortedFiles.values()) {
                         FileStream.closeAll(fileStreams.iterator());
                     }
                 }

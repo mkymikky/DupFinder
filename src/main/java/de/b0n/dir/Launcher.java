@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.Queue;
 
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 import de.b0n.dir.processor.*;
 
@@ -28,7 +29,7 @@ public class Launcher {
         this.dupFinder = new DupFinder(model);
     }
 
-    public Queue<UnmodifiableQueueLIFO<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback) {
+    public Queue<UnmodifiableQueue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback) {
         return this.dupFinder.searchDuplicatesIn(folder, callback);
     }
 
@@ -63,21 +64,21 @@ public class Launcher {
 
         final Cluster<Long, File> model = new Cluster<>();
         final Launcher launcher = new Launcher(model);
-        final Queue<UnmodifiableQueueLIFO<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
+        final Queue<UnmodifiableQueue<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
         launcher.printQueues(duplicates);
 
     }
 
 
-    protected void printQueues(Queue<UnmodifiableQueueLIFO<File>> queues) {
+    protected void printQueues(Queue<UnmodifiableQueue<File>> queues) {
         System.out.println("\n\n### Liste gefundener Duplikate ###\n");
-        for (UnmodifiableQueueLIFO<File> files : queues) {
+        for (UnmodifiableQueue<File> files : queues) {
             printFiles(files);
             System.out.println();
         }
     }
 
-    protected void printFiles(UnmodifiableQueueLIFO<File> files) {
+    protected void printFiles(UnmodifiableQueue<File> files) {
         if( !files.isEmpty()){
             final File firstFile=files.peek();
             System.out.println("( Orte von "+firstFile.getName()+" mit " +firstFile.length()+" Bytes Länge )");

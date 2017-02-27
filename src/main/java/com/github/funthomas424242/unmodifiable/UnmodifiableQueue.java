@@ -5,11 +5,11 @@ import java.util.Iterator;
 /**
  * Created by huluvu424242 on 25.02.17.
  */
-public interface UnmodifiableQueue<Q,E> {
+public interface UnmodifiableQueue<E> {
 
-    Q addElement(final E element);
+    UnmodifiableQueue<E>  addElement(final E element);
 
-    Q removeElement();
+    UnmodifiableQueue<E> removeElement();
 
     Iterator<E> iterator();
 
