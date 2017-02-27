@@ -106,6 +106,19 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
     }
 
 
+    @Override
+    public void to(final E[] arrayToFill) {
+
+        final Iterator<E> iterator = this.iterator();
+        int index = 0;
+        while (iterator.hasNext()) {
+            arrayToFill[index] = iterator.next();
+            index++;
+        }
+
+    }
+
+
 //
 //    @Override
 //    public boolean contains(Object o) {
@@ -113,12 +126,6 @@ public class UnmodifiableQueueLIFO<E> implements UnmodifiableQueue<UnmodifiableQ
 //    }
 //
 //
-
-//
-//    @Override
-//    public <T> T[] toArray(T[] a) {
-//        return null;
-//    }
 //
 //    @Override
 //    public boolean add(E e) {

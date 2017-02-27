@@ -21,5 +21,7 @@ public interface UnmodifiableQueue<Q,E> {
 
     Object[] toArray();
 
+    void to(final E[] arrayToFill);
+
 
 }
