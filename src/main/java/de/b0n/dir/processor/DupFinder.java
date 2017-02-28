@@ -1,7 +1,6 @@
 package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
-import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
 import de.b0n.dir.DupFinderCallback;
 
 import java.io.File;

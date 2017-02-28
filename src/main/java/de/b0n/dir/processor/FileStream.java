@@ -1,7 +1,7 @@
 package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
-import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueueFIFO;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -36,7 +36,7 @@ class FileStream {
 	 * @return Queue mit FileStreams
 	 */
 	public static UnmodifiableQueue<FileStream> pack(Iterator<File> files) {
-		UnmodifiableQueue<FileStream> fileStreams = new UnmodifiableQueueLIFO<>();
+		UnmodifiableQueue<FileStream> fileStreams = new UnmodifiableQueueFIFO<>();
 		while(files.hasNext()){
 			fileStreams=fileStreams.addElement(new FileStream(files.next()));
 		}
@@ -52,7 +52,7 @@ class FileStream {
 	}
 
 	public static UnmodifiableQueue<File> convertListOfFileStreamToListOfFiles(Iterator<FileStream> fileStreams) {
-		UnmodifiableQueue<File> filesQueue = new UnmodifiableQueueLIFO();
+		UnmodifiableQueue<File> filesQueue = new UnmodifiableQueueFIFO();
 		while(fileStreams.hasNext()){
 			filesQueue=filesQueue.addElement(fileStreams.next().getFile());
 		}

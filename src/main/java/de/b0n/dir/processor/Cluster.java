@@ -1,7 +1,7 @@
 package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
-import com.github.funthomas424242.unmodifiable.UnmodifiableQueueLIFO;
+import com.github.funthomas424242.unmodifiable.UnmodifiableQueueFIFO;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -70,7 +70,7 @@ public class Cluster<G, E> {
         synchronized (this) {
             elements = map.get(group);
             if (elements == null) {
-                map.put(group, new UnmodifiableQueueLIFO<E>().addElement(element));
+                map.put(group, new UnmodifiableQueueFIFO<E>().addElement(element));
             }else{
                 map.put(group,elements.addElement(element));
             }
