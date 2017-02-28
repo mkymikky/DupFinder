@@ -13,14 +13,28 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
     protected final int size;
 
     /**
+     * Konstruiert eine leer Queue.
+     */
+    public UnmodifiableQueueFIFO() {
+        this.root = null;
+        this.firstChainLink = null;
+        this.size = 0;
+    }
+
+    /**
      * Konstruiert eine neue Queue durch Anhängen eines Elements an eine bestehende Queue.
      *
      * @param predecessorQueue
      * @param element
      */
     protected UnmodifiableQueueFIFO(UnmodifiableQueueFIFO<E> predecessorQueue, E element) {
-        this.root = new Link<E>(predecessorQueue.root, element);
+        this.root = new Link<E>(element);
         this.size = predecessorQueue.size + 1;
+        // Umhängen
+        if(predecessorQueue.root!=null) {
+            predecessorQueue.root.setSuccessor(this.root);
+        }
+        // First Element merken
         if (predecessorQueue.firstChainLink == null) {
             this.firstChainLink = root;
         } else {
@@ -41,18 +55,10 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
         this.size = size;
     }
 
-    /**
-     * Konstruiert eine leer Queue.
-     */
-    public UnmodifiableQueueFIFO() {
-        this.root = null;
-        this.firstChainLink = null;
-        this.size = 0;
-    }
+
 
     @Override
     public UnmodifiableQueueFIFO<E> addElement(final E element) {
-
         return new UnmodifiableQueueFIFO<E>(this, element);
     }
 
@@ -62,9 +68,9 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
             return null;
         } else {
             if(size()==1) {
-                return new UnmodifiableQueueFIFO<E>(root.getPredecessor(), null, size - 1);
+                return new UnmodifiableQueueFIFO<E>(null, null, size - 1);
             }else {
-                return new UnmodifiableQueueFIFO<E>(root.getPredecessor(), firstChainLink, size - 1);
+                return new UnmodifiableQueueFIFO<E>(root, firstChainLink.getSuccessor(), size - 1);
             }
         }
     }
@@ -84,7 +90,7 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
         if (isEmpty()) {
             return null;
         } else {
-            return root.getElement();
+            return firstChainLink.getElement();
         }
     }
 
@@ -92,8 +98,7 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
     public Iterator<E> iterator() {
         return new Iterator<E>() {
 
-            // TODO Implementierung falsch
-            Link<E> curLink = root;
+            Link<E> curLink = firstChainLink;
 
             @Override
             public boolean hasNext() {
@@ -103,7 +108,7 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
             @Override
             public E next() {
                 final E nextElement = curLink.getElement();
-                curLink = curLink.getPredecessor();
+                curLink = curLink.getSuccessor();
                 return nextElement;
             }
         };
@@ -206,25 +211,25 @@ public class UnmodifiableQueueFIFO<E> implements UnmodifiableQueue<E> {
      */
     protected class Link<ET> {
 
-        protected Link<ET> predecessor;
-        //        protected Link startLink;
+        protected Link<ET> successor;
         protected ET element;
 
-        protected Link(final Link<ET> predecessor, final ET element) {
-            this.predecessor = predecessor;
-//            this.startLink = startLink;
+        protected Link(final ET element) {
             this.element = element;
         }
 
-        protected Link<ET> getPredecessor() {
-            return this.predecessor;
+        protected void setSuccessor(final Link successor){
+            this.successor=successor;
+        }
+
+        protected Link<ET> getSuccessor() {
+            return this.successor;
         }
 
         protected ET getElement() {
             return this.element;
         }
 
-//        protected  Link getStartLink() {return this.startLink;}
 
     }
 

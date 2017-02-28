@@ -59,11 +59,19 @@ public class UnmodifiableQueueFIFOTest {
     }
 
     @Test
-    public void peekLiefertDasLetzteEingefuegteElement() {
+    public void peekLiefertDasErsteEingefuegteElementNull() {
         final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
-        final String lastElement = queue.peek();
-        assertEquals("Karl", lastElement);
+        final String firstElement = queue.peek();
+        assertNull(firstElement);
+    }
+
+    @Test
+    public void peekLiefertDasErsteEingefuegteElement() {
+        final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
+                .addElement("Bernd").addElement("Heinz").addElement("Karl");
+        final String firstElement = queue.peek();
+        assertEquals("Bernd", firstElement);
     }
 
     @Test
@@ -75,30 +83,44 @@ public class UnmodifiableQueueFIFOTest {
 
     @Test
     public void iteratorLiefertElementeFIFO() {
-        final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
+        final UnmodifiableQueue<String> queue = new UnmodifiableQueueFIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl");
         final Iterator<String> iterator = queue.iterator();
         assertTrue(iterator.hasNext());
-        assertEquals("Karl", iterator.next());
+        assertNull(iterator.next());
         assertTrue(iterator.hasNext());
         assertEquals("Heinz", iterator.next());
         assertTrue(iterator.hasNext());
-        assertNull(iterator.next());
+        assertEquals("Karl", iterator.next());
         assertFalse(iterator.hasNext());
         assertFalse(iterator.hasNext());
     }
 
     @Test
     public void removeLiefertEineUmsEinsKleinereKette() {
-        final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
+        final UnmodifiableQueue<String> queue = new UnmodifiableQueueFIFO<String>()
                 .addElement("1").addElement("2").addElement("3");
         assertEquals(3, queue.size());
         final UnmodifiableQueue<String> newQueue = queue.removeElement();
         assertNotNull(newQueue);
-        assertEquals(2,newQueue.size());
-        assertEquals("2",newQueue.peek());
+        assertEquals(2, newQueue.size());
+        assertEquals("2", newQueue.peek());
         // alte Kette unverändert
         assertEquals(3, queue.size());
+    }
+
+    @Test
+    public void removeAufEinserKetterLiefertLeereKette() {
+        final UnmodifiableQueue<String> queue = new UnmodifiableQueueFIFO<String>().addElement("3");
+        assertEquals(1, queue.size());
+        assertEquals("3",queue.peek());
+        final UnmodifiableQueue<String> newQueue = queue.removeElement();
+        assertNotNull(newQueue);
+        assertEquals(0, newQueue.size());
+        assertNull(newQueue.peek());
+        // alte Kette unverändert
+        assertEquals(1, queue.size());
+        assertEquals("3",queue.peek());
     }
 
     @Test
@@ -116,10 +138,10 @@ public class UnmodifiableQueueFIFOTest {
         final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl").addElement("Mark");
         final int size = queue.size();
-        assertEquals(4,size);
-        final Object[] elements=queue.toArray();
+        assertEquals(4, size);
+        final Object[] elements = queue.toArray();
         assertNotNull(elements);
-        assertEquals(size,elements.length);
+        assertEquals(size, elements.length);
     }
 
     @Test
@@ -127,11 +149,11 @@ public class UnmodifiableQueueFIFOTest {
         final UnmodifiableQueueFIFO<String> queue = new UnmodifiableQueueFIFO<String>()
                 .addElement(null).addElement("Heinz").addElement("Karl").addElement("Mark");
         final int size = queue.size();
-        assertEquals(4,size);
+        assertEquals(4, size);
         final String[] arrayToFill = new String[size];
         queue.to(arrayToFill);
         assertNotNull(arrayToFill);
-        assertEquals(size,arrayToFill.length);
+        assertEquals(size, arrayToFill.length);
     }
 
 }
