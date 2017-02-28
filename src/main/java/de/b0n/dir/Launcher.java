@@ -81,7 +81,7 @@ public class Launcher {
     protected void printFiles(UnmodifiableQueue<File> files) {
         if( !files.isEmpty()){
             final File firstFile=files.peek();
-            System.out.println("( Orte von "+firstFile.getName()+" mit " +firstFile.length()+" Bytes Länge )");
+            System.out.println("( Orte mit "+ firstFile.length()+" Bytes Länge )");
         }
 
         final Iterator<File> filesIterator=files.iterator();
