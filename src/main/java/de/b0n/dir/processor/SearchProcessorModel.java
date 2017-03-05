@@ -114,7 +114,7 @@ public abstract class SearchProcessorModel<G, E> {
      */
     final protected UnmodifiableQueue<E> popGroup() {
         synchronized (this) {
-            Iterator<G> iterator = map.keySet().iterator();
+            final Iterator<G> iterator = map.keySet().iterator();
             if (iterator.hasNext()) {
                 return map.remove(iterator.next());
             }
@@ -131,9 +131,9 @@ public abstract class SearchProcessorModel<G, E> {
         final Queue<E> uniques = new ConcurrentLinkedQueue<E>();
         synchronized (this) {
             for (G group : map.keySet()) {
-                UnmodifiableQueue<E> elements = map.get(group);
+                final UnmodifiableQueue<E> elements = map.get(group);
                 if (elements.size() <= 1) {
-                    UnmodifiableQueue<E> removedGroup = map.remove(group);
+                    final UnmodifiableQueue<E> removedGroup = map.remove(group);
                     if (removedGroup.size() == 1) {
                         uniques.add(removedGroup.peek());
                     }
