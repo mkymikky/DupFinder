@@ -27,7 +27,6 @@ public class DuplicateLengthFinder extends SearchProcessor {
      * Dateien vor.
      *
      * @param threadPool Pool zur Ausführung der Suchen
-     *
      */
     protected DuplicateLengthFinder(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool) {
         if (model == null) {
@@ -59,15 +58,16 @@ public class DuplicateLengthFinder extends SearchProcessor {
             throw new IllegalArgumentException("folder may not be null.");
         }
 
-        if (threadPool == null) {
-            futures.add(threadPool.submit(new DuplicateLengthRunner(this.model,this.threadPool, folder, DUMMY_CALLBACK)));
-        } else {
-            futures.add(threadPool.submit(new DuplicateLengthRunner(this.model,this.threadPool, folder, callback)));
+        if (callback == null) {
+            throw new IllegalArgumentException("callback may not be null.");
         }
+
+        futures.add(threadPool.submit(new DuplicateLengthRunner(this.model, this.threadPool, folder, callback)));
+
         final Date startDate = new Date();
-        callback.processorStartAt(ID,startDate);
+        callback.processorStartAt(ID, startDate);
         this.execute(folder);
-        callback.processorEndsAt(ID,startDate,new Date());
+        callback.processorEndsAt(ID, startDate, new Date());
     }
 
 
@@ -99,22 +99,22 @@ public class DuplicateLengthFinder extends SearchProcessor {
         }
 
         private boolean isValidFolder(final File folder) {
-            boolean isValidFolder=true;
+            boolean isValidFolder = true;
 
             if (!folder.exists()) {
-                isValidFolder=false;
+                isValidFolder = false;
             }
             if (!folder.isDirectory()) {
-                isValidFolder=false;
+                isValidFolder = false;
             }
-            if( Files.isSymbolicLink( folder.toPath()) ){
-                isValidFolder=false;
+            if (Files.isSymbolicLink(folder.toPath())) {
+                isValidFolder = false;
             }
             if (!folder.canRead()) {
-                isValidFolder=false;
+                isValidFolder = false;
             }
             if (folder.list() == null) {
-                isValidFolder=false;
+                isValidFolder = false;
             }
             return isValidFolder;
         }
@@ -140,7 +140,7 @@ public class DuplicateLengthFinder extends SearchProcessor {
 
                 if (file.isFile()) {
                     model.addGroupedElement(Long.valueOf(file.length()), file);
-                }else{
+                } else {
                     final boolean isValidFolder = isValidFolder(folder);
                     if (isValidFolder) {
                         Thread.yield();

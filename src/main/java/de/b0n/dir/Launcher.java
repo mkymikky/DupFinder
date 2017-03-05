@@ -65,7 +65,7 @@ public class Launcher {
 
         final SearchProcessorModel<Long, File> model = new DupFinderModel<>();
         final Launcher launcher = new Launcher(model);
-        final Queue<UnmodifiableQueue<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
+        final Queue<UnmodifiableQueue<File>> duplicates = launcher.searchDuplicatesIn(folder, DupFinderCallback.DUMMY_CALLBACK);
         launcher.printQueues(duplicates);
 
     }

@@ -7,8 +7,6 @@ import de.b0n.dir.DupFinderCallback;
  */
 public abstract class SearchProcessor {
 
-    protected static final DupFinderCallback DUMMY_CALLBACK = new DupFinderCallback(){};
-
     protected final ProcessorID ID=new ProcessorID(this.getClass().getName());
 
     /**
