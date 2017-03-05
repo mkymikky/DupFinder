@@ -16,7 +16,7 @@ Bei der Entwicklung ist von folgenden Stakeholder Gruppen auszugehen:
 Folgende Anforderungen sind für den Frameworknutzer zu erfüllen:
 * Das Framework lässt sich über die Kommandozeile wie folgt aufrufen: java -jar \<jarFile\> \<Suchpfad\>
 * Das Framework lässt sich in eine andere Anwendung integrieren indem eine Instanz der Haupklasse erzeugt und dieser ein vorgegebenes Datenmodell übergeben wird. 
-* Das Datenmodell ist vom Frameworknutzer an sein geünschtes Datenmodell anpassbar zum Beispiel durch Vererbung.
+* Das Datenmodell ist vom Frameworknutzer an sein gewünschtes Datenmodell anpassbar zum Beispiel durch Vererbung.
 * Der Frameworknutzer soll Callbacks an den Suchprozess übergeben können mit deren Hilfe er über Neuigkeiten (neu zu durchsuchender Ordner, übersprungener Ordner, gefundenes Duplikat, ...) vom Framework informiert werden soll. 
 * Fehler im Datenmodell des Nutzers oder den übergebenen Callbacks dürfen den eigentlichen Suchprozess nicht beeinflussen. 
 * Der Suchprozess lässt sich über die Kombination von Prozessoren durch den Frameworknutzer willkürlich konfigurieren.
