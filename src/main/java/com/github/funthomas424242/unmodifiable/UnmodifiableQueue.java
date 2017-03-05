@@ -23,5 +23,11 @@ public interface UnmodifiableQueue<E> {
 
     void to(final E[] arrayToFill);
 
+//    default E[] getElements() {
+//        final E[] elements = (E[]) new Object[this.size()];
+//        this.to(elements);
+//        return elements;
+//    }
+
 
 }
