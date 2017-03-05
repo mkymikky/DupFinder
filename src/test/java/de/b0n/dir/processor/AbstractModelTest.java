@@ -15,31 +15,31 @@
 //
 //	@Test(expected=IllegalArgumentException.class)
 //	public void addGroupedElementNullNullTest() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		cluster.addGroupedElement(null, null);
 //	}
 //
 //	@Test(expected=IllegalArgumentException.class)
 //	public void addGroupedElementIntegerNullTest() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		cluster.addGroupedElement(Integer.valueOf(0), null);
 //	}
 //
 //	@Test(expected=IllegalArgumentException.class)
 //	public void addGroupedElementNullStringTest() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		cluster.addGroupedElement(null, EMPTY_STRING_ELEMENT);
 //	}
 //
 //	@Test
 //	public void size0Test() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		assertEquals(0, cluster.size());
 //	}
 //
 //	@Test
 //	public void size1Test() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		cluster.addGroupedElement(Integer.valueOf(0), EMPTY_STRING_ELEMENT);
 //		assertEquals(1, cluster.size());
 //		assertEquals(EMPTY_STRING_ELEMENT, cluster.values().iterator().next().peek());
@@ -50,7 +50,7 @@
 //
 //	@Test
 //	public void uniqueTest() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		cluster.addGroupedElement(Integer.valueOf(0), EMPTY_STRING_ELEMENT);
 //		cluster.addGroupedElement(Integer.valueOf(0), EMPTY_STRING_ELEMENT);
 //		cluster.addGroupedElement(Integer.valueOf(1), EMPTY_STRING_ELEMENT);
@@ -69,7 +69,7 @@
 //	@Test
 //	@Ignore("Extrem langsam")
 //	public void sizeMaxTest() {
-//		AbstractProcessorModel<Integer, String> cluster = new AbstractProcessorModel<Integer, String>();
+//		SearchProcessorModel<Integer, String> cluster = new SearchProcessorModel<Integer, String>();
 //		for (long l = 0; l < Integer.MAX_VALUE; ++l) {
 //			if (cluster.size()%1000 == 0)
 //				System.out.println(l);

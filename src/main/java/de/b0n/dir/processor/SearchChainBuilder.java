@@ -9,11 +9,11 @@ import java.util.Queue;
 /**
  * Created by huluvu424242 on 22.02.17.
  */
-public class DupFinder {
+public class SearchChainBuilder {
 
-    final protected AbstractProcessorModel<Long, File> model;
+    final protected SearchProcessorModel<Long, File> model;
 
-    public DupFinder(final AbstractProcessorModel<Long, File> model) {
+    public SearchChainBuilder(final SearchProcessorModel<Long, File> model) {
         this.model = model;
     }
 

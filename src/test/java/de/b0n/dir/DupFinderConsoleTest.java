@@ -40,7 +40,7 @@
 //		System.setErr(printStream);
 //		Launcher.main(new String[] {});
 //		assertEquals(
-//				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
+//				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: SearchChainBuilder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
 //				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
 //	}
 //
@@ -49,7 +49,7 @@
 //		System.setErr(printStream);
 //		Launcher.main(new String[] {PATH_FILE});
 //		assertEquals(
-//				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
+//				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: SearchChainBuilder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
 //				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
 //	}
 //

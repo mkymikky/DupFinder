@@ -16,8 +16,8 @@ import java.util.concurrent.Future;
  *
  * @author Claus
  */
-public class DuplicateLengthFinder extends AbstractSearchProcessor {
-    protected final AbstractProcessorModel<Long, File> model;
+public class DuplicateLengthFinder extends SearchProcessor {
+    protected final SearchProcessorModel<Long, File> model;
     protected final ExecutorService threadPool;
 
     protected static final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
@@ -29,7 +29,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
      * @param threadPool Pool zur Ausführung der Suchen
      *
      */
-    protected DuplicateLengthFinder(final AbstractProcessorModel<Long, File> model, final ExecutorService threadPool) {
+    protected DuplicateLengthFinder(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool) {
         if (model == null) {
             throw new IllegalArgumentException("model may not be null.");
         }
@@ -41,7 +41,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
         this.threadPool = threadPool;
     }
 
-    protected DuplicateLengthFinder(final AbstractProcessorModel<Long, File> model) {
+    protected DuplicateLengthFinder(final SearchProcessorModel<Long, File> model) {
         this(model, Executors.newWorkStealingPool());
     }
 
@@ -71,7 +71,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
     }
 
 
-    protected AbstractProcessorModel<Long, File> execute(final File folder) {
+    protected SearchProcessorModel<Long, File> execute(final File folder) {
 
 
         while (!futures.isEmpty()) {
@@ -86,12 +86,12 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
 
     private static class DuplicateLengthRunner implements Runnable {
 
-        protected AbstractProcessorModel<Long, File> model;
+        protected SearchProcessorModel<Long, File> model;
         protected final ExecutorService threadPool;
         protected final File folder;
         protected final DuplicateLengthFinderCallback callback;
 
-        public DuplicateLengthRunner(final AbstractProcessorModel<Long, File> model, final ExecutorService threadPool, final File folder, final DuplicateLengthFinderCallback callback) {
+        public DuplicateLengthRunner(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool, final File folder, final DuplicateLengthFinderCallback callback) {
             this.model = model;
             this.threadPool = threadPool;
             this.folder = folder;

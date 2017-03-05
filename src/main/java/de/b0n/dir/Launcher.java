@@ -6,7 +6,7 @@ import java.util.Queue;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import de.b0n.dir.model.DupFinderModel;
-import de.b0n.dir.processor.AbstractProcessorModel;
+import de.b0n.dir.processor.SearchProcessorModel;
 import de.b0n.dir.processor.*;
 
 /**
@@ -17,21 +17,21 @@ import de.b0n.dir.processor.*;
 public class Launcher {
 
     protected static final String ERROR = "FEHLER: ";
-    protected static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
+    protected static final String USAGE = "\r\n Benutzung: SearchChainBuilder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
     protected static final String NO_PARAM = "Parameter <Verzeichnis> fehlt.";
     protected static final String INVALID_DIRECTORY = "Parameter <Verzeichnis> ist kein Verzeichnis.";
     protected static final String UREADABLE_DIRECTORY = "Parameter <Verzeichnis> kann nicht gelesen werden.";
     protected static final String NO_EXIST_DIRECTORY = "Parameter <Verzeichnis> existiert nicht.";
 
 
-    protected final DupFinder dupFinder;
+    protected final SearchChainBuilder searchChainBuilder;
 
-    public Launcher(final AbstractProcessorModel<Long, File> model) {
-        this.dupFinder = new DupFinder(model);
+    public Launcher(final SearchProcessorModel<Long, File> model) {
+        this.searchChainBuilder = new SearchChainBuilder(model);
     }
 
     public Queue<UnmodifiableQueue<File>> searchDuplicatesIn(final File folder, final DupFinderCallback callback) {
-        return this.dupFinder.searchDuplicatesIn(folder, callback);
+        return this.searchChainBuilder.searchDuplicatesIn(folder, callback);
     }
 
 
@@ -63,7 +63,7 @@ public class Launcher {
             return;
         }
 
-        final AbstractProcessorModel<Long, File> model = new DupFinderModel<>();
+        final SearchProcessorModel<Long, File> model = new DupFinderModel<>();
         final Launcher launcher = new Launcher(model);
         final Queue<UnmodifiableQueue<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
         launcher.printQueues(duplicates);

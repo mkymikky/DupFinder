@@ -1,6 +1,7 @@
 package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
+import de.b0n.dir.io.FileStream;
 import de.b0n.dir.model.ModelFactory;
 
 import java.io.File;
@@ -10,25 +11,25 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.*;
 
-public class DuplicateContentFinder extends AbstractSearchProcessor {
+public class DuplicateContentFinder extends SearchProcessor {
     private static final Integer FINISHED = Integer.valueOf(-1);
     private static final Integer FAILING = Integer.valueOf(-2);
 
     //	private final Collection<Queue<File>> input;
-    protected AbstractProcessorModel<Long, File> model;
+    protected SearchProcessorModel<Long, File> model;
     private final ExecutorService threadPool;
     private final DuplicateContentFinderCallback callback;
 
     private final Queue<UnmodifiableQueue<File>> result = new ConcurrentLinkedQueue<>();
     private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<>();
 
-    protected DuplicateContentFinder(final AbstractProcessorModel<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
         this.model = model;
         this.threadPool = threadPool;
         this.callback = callback;
     }
 
-    protected DuplicateContentFinder(final AbstractProcessorModel<Long, File> model, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final SearchProcessorModel<Long, File> model, final DuplicateContentFinderCallback callback) {
         this(model, Executors.newWorkStealingPool(), callback);
     }
 
@@ -86,7 +87,7 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
 
         @Override
         public void run() {
-            AbstractProcessorModel<Integer, FileStream> sortedFiles = null;
+            SearchProcessorModel<Integer, FileStream> sortedFiles = null;
 
             try {
                 while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
@@ -146,11 +147,11 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
      * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
      *
      * @param inputFileStreams zu sortierende FileStreams
-     * @return AbstractProcessorModel mit den nach Ergebnis sortierten FileStreams
+     * @return SearchProcessorModel mit den nach Ergebnis sortierten FileStreams
      */
-    private AbstractProcessorModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory, Iterator<FileStream> inputFileStreams) {
-//        AbstractProcessorModel<Integer, FileStream> sortedFiles = new AbstractProcessorModel<Integer, FileStream>();
-        AbstractProcessorModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
+    private SearchProcessorModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory, Iterator<FileStream> inputFileStreams) {
+//        SearchProcessorModel<Integer, FileStream> sortedFiles = new SearchProcessorModel<Integer, FileStream>();
+        SearchProcessorModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
         while (inputFileStreams.hasNext()) {
             final FileStream sortFile = inputFileStreams.next();
             try {

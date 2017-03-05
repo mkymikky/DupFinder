@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @param <E> Element type
  * @author Claus
  */
-public abstract class AbstractProcessorModel<G, E> {
+public abstract class SearchProcessorModel<G, E> {
 
     protected final Map<G, UnmodifiableQueue<E>> map = new ConcurrentHashMap<>();
 
@@ -96,7 +96,7 @@ public abstract class AbstractProcessorModel<G, E> {
     }
 
     /**
-     * Entfernt eine Gruppe aus dem AbstractProcessorModel
+     * Entfernt eine Gruppe aus dem SearchProcessorModel
      *
      * @param group Zu entfernende Gruppe
      * @return Queues der entfernten Elemente
@@ -109,7 +109,7 @@ public abstract class AbstractProcessorModel<G, E> {
 
 
     /**
-     * Liefert die erste verfügbare Gruppe und entfernt diese aus dem AbstractProcessorModel.
+     * Liefert die erste verfügbare Gruppe und entfernt diese aus dem SearchProcessorModel.
      *
      * @return Elemente der ersten verfügbaren Gruppe
      */
