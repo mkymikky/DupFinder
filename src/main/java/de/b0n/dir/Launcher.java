@@ -5,6 +5,8 @@ import java.util.Iterator;
 import java.util.Queue;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
+import de.b0n.dir.model.DupFinderModel;
+import de.b0n.dir.processor.AbstractProcessorModel;
 import de.b0n.dir.processor.*;
 
 /**
@@ -24,7 +26,7 @@ public class Launcher {
 
     protected final DupFinder dupFinder;
 
-    public Launcher(final AbstractModel<Long, File> model) {
+    public Launcher(final AbstractProcessorModel<Long, File> model) {
         this.dupFinder = new DupFinder(model);
     }
 
@@ -61,7 +63,7 @@ public class Launcher {
             return;
         }
 
-        final AbstractModel<Long, File> model = new DupFinderModel<>();
+        final AbstractProcessorModel<Long, File> model = new DupFinderModel<>();
         final Launcher launcher = new Launcher(model);
         final Queue<UnmodifiableQueue<File>> duplicates = launcher.searchDuplicatesIn(folder, new DupFinderCallback(){});
         launcher.printQueues(duplicates);

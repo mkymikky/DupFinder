@@ -1,6 +1,7 @@
 package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
+import de.b0n.dir.model.ModelFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -14,20 +15,20 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
     private static final Integer FAILING = Integer.valueOf(-2);
 
     //	private final Collection<Queue<File>> input;
-    protected AbstractModel<Long, File> model;
+    protected AbstractProcessorModel<Long, File> model;
     private final ExecutorService threadPool;
     private final DuplicateContentFinderCallback callback;
 
     private final Queue<UnmodifiableQueue<File>> result = new ConcurrentLinkedQueue<>();
     private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<>();
 
-    protected DuplicateContentFinder(final AbstractModel<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final AbstractProcessorModel<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
         this.model = model;
         this.threadPool = threadPool;
         this.callback = callback;
     }
 
-    protected DuplicateContentFinder(final AbstractModel<Long, File> model, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final AbstractProcessorModel<Long, File> model, final DuplicateContentFinderCallback callback) {
         this(model, Executors.newWorkStealingPool(), callback);
     }
 
@@ -85,7 +86,7 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
 
         @Override
         public void run() {
-            AbstractModel<Integer, FileStream> sortedFiles = null;
+            AbstractProcessorModel<Integer, FileStream> sortedFiles = null;
 
             try {
                 while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
@@ -145,11 +146,11 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
      * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
      *
      * @param inputFileStreams zu sortierende FileStreams
-     * @return AbstractModel mit den nach Ergebnis sortierten FileStreams
+     * @return AbstractProcessorModel mit den nach Ergebnis sortierten FileStreams
      */
-    private AbstractModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory,Iterator<FileStream> inputFileStreams) {
-//        AbstractModel<Integer, FileStream> sortedFiles = new AbstractModel<Integer, FileStream>();
-        AbstractModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
+    private AbstractProcessorModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory, Iterator<FileStream> inputFileStreams) {
+//        AbstractProcessorModel<Integer, FileStream> sortedFiles = new AbstractProcessorModel<Integer, FileStream>();
+        AbstractProcessorModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
         while (inputFileStreams.hasNext()) {
             final FileStream sortFile = inputFileStreams.next();
             try {
