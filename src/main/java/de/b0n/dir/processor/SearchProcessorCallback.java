@@ -15,7 +15,7 @@ public interface SearchProcessorCallback {
      *
      * @param date
      */
-    default void processorStartAt(final ProcessorID id, final Date date){
+    default void processorStartAt(final SearchProcessor.ProcessorID id, final Date date){
         System.out.println("Processor "+id+" gestartet am "+ DATE_FORMATTER.format(date)+" .");
     }
 
@@ -25,7 +25,7 @@ public interface SearchProcessorCallback {
      *
      * @param endDate
      */
-    default void processorEndsAt(final ProcessorID id, final Date startDate, final Date endDate){
+    default void processorEndsAt(final SearchProcessor.ProcessorID id, final Date startDate, final Date endDate){
         final double dauerInMillisekunden=(endDate.getTime() - startDate.getTime())/1000D;
         System.out.println("Processor "+id+" arbeitete "+dauerInMillisekunden+" Sekunden von "+DATE_FORMATTER.format(startDate)+" bis "+DATE_FORMATTER.format(endDate)+" .");
     }
