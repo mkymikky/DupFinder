@@ -22,7 +22,7 @@ public abstract class SearchProcessorModel<G, E> {
 
     protected final Map<G, UnmodifiableQueue<E>> map = new ConcurrentHashMap<>();
 
-    public abstract ModelFactory getModelFactory();
+    public abstract SearchProcessorModel createNewModel();
 
 
     /**

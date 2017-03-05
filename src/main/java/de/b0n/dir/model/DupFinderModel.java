@@ -13,15 +13,8 @@ public class DupFinderModel<G,E> extends SearchProcessorModel<G,E> {
     }
 
     @Override
-    public ModelFactory getModelFactory() {
-
-        return new ModelFactory(){
-
-            @Override
-            public SearchProcessorModel createModel() {
-                return new DupFinderModel();
-            }
-        };
+    public SearchProcessorModel createNewModel(){
+        return new DupFinderModel();
     }
 
     /**

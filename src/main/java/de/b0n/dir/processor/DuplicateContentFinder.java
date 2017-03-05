@@ -2,7 +2,6 @@ package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import de.b0n.dir.io.FileStream;
-import de.b0n.dir.model.ModelFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -91,7 +90,9 @@ public class DuplicateContentFinder extends SearchProcessor {
 
             try {
                 while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
-                    sortedFiles = sortFilesByByte(model.getModelFactory(),inputFileStreams.iterator());
+                    // TODO verbessere Typcheck
+                    sortedFiles = model.createNewModel();
+                    addGroupElementTo(sortedFiles,inputFileStreams.iterator());
 
                     // Failing Streams
                     if (sortedFiles.containsGroup(FAILING)) {
@@ -142,16 +143,14 @@ public class DuplicateContentFinder extends SearchProcessor {
     /**
      * Liest aus allen gegebenen FileStreams ein Byte und sortiert die FileStreams nach Ergebnis.
      * Dadurch werden alle nicht-Dubletten bezüglich dieses Bytes in unterschiedliche Gruppen sortiert.
-     * Ebenso werden alle vollständig gelesenen Dateien in eine eigene Gruppe sortiert INPUT(-1).
+     * Ebenso werden alle vollständig gelesenen Dateien in eine eigene Gruppe sortiert FINISHED(-1).
      * Dateien, welche nicht (mehr) gelesen werden können, fallen in die Kategrorie FAILED(-2).
      * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
      *
      * @param inputFileStreams zu sortierende FileStreams
      * @return SearchProcessorModel mit den nach Ergebnis sortierten FileStreams
      */
-    private SearchProcessorModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory, Iterator<FileStream> inputFileStreams) {
-//        SearchProcessorModel<Integer, FileStream> sortedFiles = new SearchProcessorModel<Integer, FileStream>();
-        SearchProcessorModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
+    private void addGroupElementTo(SearchProcessorModel<Integer, FileStream> sortedFiles, Iterator<FileStream> inputFileStreams) {
         while (inputFileStreams.hasNext()) {
             final FileStream sortFile = inputFileStreams.next();
             try {
@@ -161,7 +160,6 @@ public class DuplicateContentFinder extends SearchProcessor {
                 sortedFiles.addGroupedElement(FAILING, sortFile);
             }
         }
-        return sortedFiles;
     }
 
 }
