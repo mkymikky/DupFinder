@@ -2,7 +2,6 @@ package de.b0n.dir.processor;
 
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueue;
 import com.github.funthomas424242.unmodifiable.UnmodifiableQueueFIFO;
-import de.b0n.dir.model.ModelFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
