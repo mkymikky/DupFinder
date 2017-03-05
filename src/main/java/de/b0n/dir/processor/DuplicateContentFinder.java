@@ -104,10 +104,14 @@ public class DuplicateContentFinder extends SearchProcessor {
                 }
 
                 // Unique Streams
-                // TODO sind das keine Streams die geschlossen werden müssen?
-                int uniqueFiles = sortedFiles.removeUniques().size();
-                if (callback != null && uniqueFiles > 0) {
-                    callback.uniqueFiles(uniqueFiles);
+                final UnmodifiableQueue<FileStream> uniqueFiles = sortedFiles.removeUniques();
+                final int sizeOfUniqueFiles = uniqueFiles.size();
+                if (callback != null && sizeOfUniqueFiles > 0) {
+                    callback.uniqueFiles(sizeOfUniqueFiles);
+                }
+                final Iterator<FileStream> uniqueFilesIterator= uniqueFiles.iterator();
+                while(uniqueFilesIterator.hasNext()){
+                    uniqueFilesIterator.next().close();
                 }
 
                 // Finished Streams
@@ -130,7 +134,7 @@ public class DuplicateContentFinder extends SearchProcessor {
             }
 
             // Offene Streams schließen im Fehlerfall
-            if( inputFileStreams != null ) {
+            if (inputFileStreams != null) {
                 // Sollte eigentlich nicht vorkommen
 
                 final Iterator<FileStream> fileStreams = inputFileStreams.iterator();

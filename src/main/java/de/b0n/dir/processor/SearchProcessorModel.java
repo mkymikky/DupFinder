@@ -69,7 +69,7 @@ public abstract class SearchProcessorModel<G, E> {
             throw new IllegalArgumentException("element darf nicht null sein.");
         }
 
-        addElementToGroup(group,element);
+        addElementToGroup(group, element);
     }
 
     /**
@@ -85,8 +85,8 @@ public abstract class SearchProcessorModel<G, E> {
             elements = map.get(group);
             if (elements == null) {
                 map.put(group, new UnmodifiableQueueFIFO<E>().addElement(element));
-            }else{
-                map.put(group,elements.addElement(element));
+            } else {
+                map.put(group, elements.addElement(element));
             }
             // Da beide Fälle neue Queues erzeugt haben
             elements = map.get(group);
@@ -127,23 +127,21 @@ public abstract class SearchProcessorModel<G, E> {
      *
      * @return Queue der entfernten einzigartigen Dateien
      */
-    final protected Queue<E> removeUniques() {
-        final Queue<E> uniques = new ConcurrentLinkedQueue<E>();
+    final protected UnmodifiableQueue<E> removeUniques() {
+        UnmodifiableQueue<E> uniques = new UnmodifiableQueueFIFO<E>();
         synchronized (this) {
             for (G group : map.keySet()) {
                 final UnmodifiableQueue<E> elements = map.get(group);
                 if (elements.size() <= 1) {
                     final UnmodifiableQueue<E> removedGroup = map.remove(group);
                     if (removedGroup.size() == 1) {
-                        uniques.add(removedGroup.peek());
+                        uniques = uniques.addElement(removedGroup.peek());
                     }
                 }
             }
         }
         return uniques;
     }
-
-
 
 
 }
