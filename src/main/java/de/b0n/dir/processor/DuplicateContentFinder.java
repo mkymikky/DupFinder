@@ -50,8 +50,8 @@ public class DuplicateContentFinder extends SearchProcessor {
             throw new IllegalArgumentException("input may not be null.");
         }
 
-        final Date startDate =  new Date();
-        callback.processorStartAt(ID,startDate);
+        final Date startDate = new Date();
+        callback.processorStartAt(ID, startDate);
         final Queue<UnmodifiableQueue<File>> duplicates = this.execute();
         callback.processorEndsAt(ID, startDate, new Date());
         return duplicates;
@@ -78,67 +78,69 @@ public class DuplicateContentFinder extends SearchProcessor {
     }
 
     private class DuplicateContentRunner implements Runnable {
-        private UnmodifiableQueue<FileStream> inputFileStreams;
+        protected UnmodifiableQueue<FileStream> inputFileStreams;
 
-        private DuplicateContentRunner(UnmodifiableQueue<FileStream> inputFileStreams) {
+        protected DuplicateContentRunner(final UnmodifiableQueue<FileStream> inputFileStreams) {
             this.inputFileStreams = inputFileStreams;
         }
 
         @Override
         public void run() {
-            SearchProcessorModel<Integer, FileStream> sortedFiles = null;
 
-            try {
-                while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
-                    // TODO verbessere Typcheck
-                    sortedFiles = model.createNewModel();
-                    addGroupElementTo(sortedFiles,inputFileStreams.iterator());
+            while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
+                // TODO verbessere Typcheck
+                final SearchProcessorModel<Integer, FileStream> sortedFiles = model.createNewModel();
+                addGroupElementTo(sortedFiles, inputFileStreams.iterator());
 
-                    // Failing Streams
-                    if (sortedFiles.containsGroup(FAILING)) {
-                        if (callback != null) {
-                            callback.failedFiles(sortedFiles.getGroup(FAILING).size());
-                        }
-                        //FileStream.closeAll(sortedFiles.removeGroup(FAILING));
-                        FileStream.closeAll(sortedFiles.removeGroup(FAILING).iterator());
+                // Failing Streams schliessen und entfernen
+                if (sortedFiles.containsGroup(FAILING)) {
+                    if (callback != null) {
+                        callback.failedFiles(sortedFiles.getGroup(FAILING).size());
                     }
-
-                    // Unique Streams
-                    int uniqueFiles = sortedFiles.removeUniques().size();
-                    if (callback != null && uniqueFiles > 0) {
-                        callback.uniqueFiles(uniqueFiles);
-                    }
-
-                    // Finished Streams
-                    UnmodifiableQueue<FileStream> finishedFiles = null;
-                    if (sortedFiles.containsGroup(FINISHED)) {
-                        finishedFiles = sortedFiles.removeGroup(FINISHED);
-                        result.add(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
-                        FileStream.closeAll(finishedFiles.iterator());
-                        if (callback != null) {
-                            callback.duplicateGroup(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
-                        }
-                    }
-
-                    // Prepare for next iteration
-                    inputFileStreams = sortedFiles.popGroup();
-
-                    // Outsource other groups
-                    for (UnmodifiableQueue<FileStream> fileStreams : sortedFiles.values()) {
-                        futures.add(threadPool.submit(new DuplicateContentRunner(fileStreams)));
+                    final Iterator<FileStream> fileStreams = sortedFiles.removeGroup(FAILING).iterator();
+                    while (fileStreams.hasNext()) {
+                        fileStreams.next().close();
                     }
                 }
-            } catch (Exception e) {
-                FileStream.closeAll(inputFileStreams.iterator());
-                if (sortedFiles != null) {
-                    for (UnmodifiableQueue<FileStream> fileStreams : sortedFiles.values()) {
-                        FileStream.closeAll(fileStreams.iterator());
+
+                // Unique Streams
+                // TODO sind das keine Streams die geschlossen werden müssen?
+                int uniqueFiles = sortedFiles.removeUniques().size();
+                if (callback != null && uniqueFiles > 0) {
+                    callback.uniqueFiles(uniqueFiles);
+                }
+
+                // Finished Streams
+                if (sortedFiles.containsGroup(FINISHED)) {
+                    final UnmodifiableQueue<FileStream> finishedFiles = sortedFiles.removeGroup(FINISHED);
+                    result.add(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
+                    FileStream.closeAll(finishedFiles.iterator());
+                    if (callback != null) {
+                        callback.duplicateGroup(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
                     }
                 }
-                throw e;
+
+                // Prepare for next iteration, die erste Gruppe wird hier verarbeitet
+                inputFileStreams = sortedFiles.popGroup();
+
+                // Outsource other groups
+                for (UnmodifiableQueue<FileStream> fileStreams : sortedFiles.values()) {
+                    futures.add(threadPool.submit(new DuplicateContentRunner(fileStreams)));
+                }
+            }
+
+            // Offene Streams schließen im Fehlerfall
+            if( inputFileStreams != null ) {
+                // Sollte eigentlich nicht vorkommen
+
+                final Iterator<FileStream> fileStreams = inputFileStreams.iterator();
+                while (fileStreams.hasNext()) {
+                    fileStreams.next().close();
+                }
             }
         }
     }
+
 
     /**
      * Liest aus allen gegebenen FileStreams ein Byte und sortiert die FileStreams nach Ergebnis.
@@ -150,7 +152,7 @@ public class DuplicateContentFinder extends SearchProcessor {
      * @param inputFileStreams zu sortierende FileStreams
      * @return SearchProcessorModel mit den nach Ergebnis sortierten FileStreams
      */
-    private void addGroupElementTo(SearchProcessorModel<Integer, FileStream> sortedFiles, Iterator<FileStream> inputFileStreams) {
+    protected void addGroupElementTo(SearchProcessorModel<Integer, FileStream> sortedFiles, Iterator<FileStream> inputFileStreams) {
         while (inputFileStreams.hasNext()) {
             final FileStream sortFile = inputFileStreams.next();
             try {
