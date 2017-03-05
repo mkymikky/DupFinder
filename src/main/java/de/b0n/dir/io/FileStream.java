@@ -32,13 +32,13 @@ public class FileStream {
 		return fileStreams;
 	}
 
-	public static Queue<File> extract(Collection<FileStream> fileStreams) {
-		Queue<File> filesQueue = new ConcurrentLinkedQueue<File>();
-		for (FileStream fileStream : fileStreams) {
-			filesQueue.add(fileStream.getFile());
-		}
-		return filesQueue;
-	}
+//	public static Queue<File> extract(Collection<FileStream> fileStreams) {
+//		Queue<File> filesQueue = new ConcurrentLinkedQueue<File>();
+//		for (FileStream fileStream : fileStreams) {
+//			filesQueue.add(fileStream.getFile());
+//		}
+//		return filesQueue;
+//	}
 
 	public static UnmodifiableQueue<File> convertListOfFileStreamToListOfFiles(Iterator<FileStream> fileStreams) {
 		UnmodifiableQueue<File> filesQueue = new UnmodifiableQueueFIFO();
@@ -48,15 +48,15 @@ public class FileStream {
 		return filesQueue;
 	}
 
-	/**
-	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
-	 * @param fileStreams zu schließende FileStreams
-	 */
-	public static void closeAll(Collection<FileStream> fileStreams) {
-		for (FileStream fileStream : fileStreams) {
-			fileStream.close();
-		}
-	}
+//	/**
+//	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
+//	 * @param fileStreams zu schließende FileStreams
+//	 */
+//	public static void closeAll(Collection<FileStream> fileStreams) {
+//		for (FileStream fileStream : fileStreams) {
+//			fileStream.close();
+//		}
+//	}
 
 	/**
 	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
