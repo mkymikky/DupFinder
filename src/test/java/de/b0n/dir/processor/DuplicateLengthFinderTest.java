@@ -94,7 +94,7 @@
 //	@Test
 //	public void scanFlatFolder() {
 //		final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //		assertNotNull(result);
 //		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 //		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
@@ -104,7 +104,7 @@
 //	@Test
 //	public void scanFolderOnlyFolder() {
 //		final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //		assertNotNull(result);
 //		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 //		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
@@ -115,7 +115,7 @@
 //	public void scanEmptyFolder() {
 //		final File folder = new File(PATH_EMPTY_FOLDER);
 //		if (folder.mkdir()) {
-//			final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//			final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //			assertNotNull(result);
 //			assertEquals(0, result.values().size());
 //			folder.delete();
@@ -133,7 +133,7 @@
 //	@Test
 //	public void scanNoDuplicates() {
 //		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //		assertNotNull(result);
 //		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
 //		assertEquals("In der gefundenen Gruppe darf nur ein Element sein", 1, result.values().iterator().next().size());
@@ -143,7 +143,7 @@
 //	@Test
 //	public void scanDuplicatesInTree() {
 //		final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //		assertNotNull(result);
 //		Iterator<Queue<File>> elementsIterator = result.values().iterator();
 //		assertEquals(1, result.values().size());
@@ -154,7 +154,7 @@
 //	public void scanDuplicatesInBiggerTreeWithCallback() {
 //		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 //		List<String> foldersEntered = new ArrayList<String>();
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder, new DuplicateLengthFinderCallback() {
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder, new DuplicateLengthFinderCallback() {
 //
 //			@Override
 //			public void enteredNewFolder(File folder) {
@@ -187,7 +187,7 @@
 //	@Test
 //	public void scanDuplicatesInBiggerTreeWithFolder() {
 //		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder);
 //		assertNotNull(result);
 //		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
 //		Iterator<Queue<File>> elementsIterator = result.values().iterator();
@@ -199,7 +199,7 @@
 //	public void scanDuplicatesInBiggerTreeWithThreadPool() {
 //		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 //		final ExecutorService threadPool = Executors.newWorkStealingPool();
-//		final Cluster<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder, threadPool);
+//		final AbstractModel<Long, File> result = DuplicateLengthFinder.readFilesRecursiveOf(folder, threadPool);
 //		assertNotNull(result);
 //		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
 //		Iterator<Queue<File>> elementsIterator = result.values().iterator();

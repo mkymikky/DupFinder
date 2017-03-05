@@ -11,9 +11,9 @@ import java.util.Queue;
  */
 public class DupFinder {
 
-    final protected Cluster<Long, File> model;
+    final protected AbstractModel<Long, File> model;
 
-    public DupFinder(final Cluster<Long, File> model) {
+    public DupFinder(final AbstractModel<Long, File> model) {
         this.model = model;
     }
 

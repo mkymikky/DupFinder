@@ -1,7 +1,5 @@
 package de.b0n.dir.processor;
 
-import de.b0n.dir.DupFinderCallback;
-
 import java.io.File;
 import java.nio.file.Files;
 import java.util.Date;
@@ -19,7 +17,7 @@ import java.util.concurrent.Future;
  * @author Claus
  */
 public class DuplicateLengthFinder extends AbstractSearchProcessor {
-    protected final Cluster<Long, File> model;
+    protected final AbstractModel<Long, File> model;
     protected final ExecutorService threadPool;
 
     protected static final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
@@ -31,7 +29,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
      * @param threadPool Pool zur Ausführung der Suchen
      *
      */
-    protected DuplicateLengthFinder(final Cluster<Long, File> model, final ExecutorService threadPool) {
+    protected DuplicateLengthFinder(final AbstractModel<Long, File> model, final ExecutorService threadPool) {
         if (model == null) {
             throw new IllegalArgumentException("model may not be null.");
         }
@@ -43,7 +41,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
         this.threadPool = threadPool;
     }
 
-    protected DuplicateLengthFinder(final Cluster<Long, File> model) {
+    protected DuplicateLengthFinder(final AbstractModel<Long, File> model) {
         this(model, Executors.newWorkStealingPool());
     }
 
@@ -73,7 +71,7 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
     }
 
 
-    protected Cluster<Long, File> execute(final File folder) {
+    protected AbstractModel<Long, File> execute(final File folder) {
 
 
         while (!futures.isEmpty()) {
@@ -88,12 +86,12 @@ public class DuplicateLengthFinder extends AbstractSearchProcessor {
 
     private static class DuplicateLengthRunner implements Runnable {
 
-        protected Cluster<Long, File> model;
+        protected AbstractModel<Long, File> model;
         protected final ExecutorService threadPool;
         protected final File folder;
         protected final DuplicateLengthFinderCallback callback;
 
-        public DuplicateLengthRunner(final Cluster<Long, File> model, final ExecutorService threadPool, final File folder, final DuplicateLengthFinderCallback callback) {
+        public DuplicateLengthRunner(final AbstractModel<Long, File> model, final ExecutorService threadPool, final File folder, final DuplicateLengthFinderCallback callback) {
             this.model = model;
             this.threadPool = threadPool;
             this.folder = folder;

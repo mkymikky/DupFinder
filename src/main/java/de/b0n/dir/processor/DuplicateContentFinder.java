@@ -14,20 +14,20 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
     private static final Integer FAILING = Integer.valueOf(-2);
 
     //	private final Collection<Queue<File>> input;
-    protected Cluster<Long, File> model;
+    protected AbstractModel<Long, File> model;
     private final ExecutorService threadPool;
     private final DuplicateContentFinderCallback callback;
 
     private final Queue<UnmodifiableQueue<File>> result = new ConcurrentLinkedQueue<>();
     private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<>();
 
-    protected DuplicateContentFinder(final Cluster<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final AbstractModel<Long, File> model, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
         this.model = model;
         this.threadPool = threadPool;
         this.callback = callback;
     }
 
-    protected DuplicateContentFinder(final Cluster<Long, File> model, final DuplicateContentFinderCallback callback) {
+    protected DuplicateContentFinder(final AbstractModel<Long, File> model, final DuplicateContentFinderCallback callback) {
         this(model, Executors.newWorkStealingPool(), callback);
     }
 
@@ -85,11 +85,11 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
 
         @Override
         public void run() {
-            Cluster<Integer, FileStream> sortedFiles = null;
+            AbstractModel<Integer, FileStream> sortedFiles = null;
 
             try {
                 while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
-                    sortedFiles = sortFilesByByte(inputFileStreams.iterator());
+                    sortedFiles = sortFilesByByte(model.getModelFactory(),inputFileStreams.iterator());
 
                     // Failing Streams
                     if (sortedFiles.containsGroup(FAILING)) {
@@ -145,10 +145,11 @@ public class DuplicateContentFinder extends AbstractSearchProcessor {
      * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
      *
      * @param inputFileStreams zu sortierende FileStreams
-     * @return Cluster mit den nach Ergebnis sortierten FileStreams
+     * @return AbstractModel mit den nach Ergebnis sortierten FileStreams
      */
-    private Cluster<Integer, FileStream> sortFilesByByte(Iterator<FileStream> inputFileStreams) {
-        Cluster<Integer, FileStream> sortedFiles = new Cluster<Integer, FileStream>();
+    private AbstractModel<Integer, FileStream> sortFilesByByte(ModelFactory<Integer,FileStream> modelFactory,Iterator<FileStream> inputFileStreams) {
+//        AbstractModel<Integer, FileStream> sortedFiles = new AbstractModel<Integer, FileStream>();
+        AbstractModel<Integer, FileStream> sortedFiles = modelFactory.createModel();
         while (inputFileStreams.hasNext()) {
             final FileStream sortFile = inputFileStreams.next();
             try {

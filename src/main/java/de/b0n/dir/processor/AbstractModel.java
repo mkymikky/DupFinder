@@ -17,8 +17,11 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  * @param <E> Element type
  * @author Claus
  */
-public class Cluster<G, E> {
+public abstract class AbstractModel<G, E> {
     private final Map<G, UnmodifiableQueue<E>> map = new ConcurrentHashMap<>();
+
+    public abstract ModelFactory getModelFactory();
+
 
     /**
      * Filtert Gruppen mit nur einem Element heraus.
@@ -110,7 +113,7 @@ public class Cluster<G, E> {
     }
 
     /**
-     * Entfernt eine Gruppe aus dem Cluster
+     * Entfernt eine Gruppe aus dem AbstractModel
      *
      * @param group Zu entfernende Gruppe
      * @return Queues der entfernten Elemente
@@ -123,10 +126,10 @@ public class Cluster<G, E> {
 
     /**
      * Liefert die Gesamtanzahl der Elemente über alle Gruppen. Falls dieser
-     * Cluster mehr als Integer.MAX_VALUE Elemente enthält, liefert er
+     * AbstractModel mehr als Integer.MAX_VALUE Elemente enthält, liefert er
      * Integer.MAX_VALUE.
      *
-     * @return Anzahl aller Elemente im Cluster
+     * @return Anzahl aller Elemente im AbstractModel
      */
     public int size() {
         int size = 0;
@@ -140,7 +143,7 @@ public class Cluster<G, E> {
     }
 
     /**
-     * Liefert die erste verfügbare Gruppe und entfernt diese aus dem Cluster.
+     * Liefert die erste verfügbare Gruppe und entfernt diese aus dem AbstractModel.
      *
      * @return Elemente der ersten verfügbaren Gruppe
      */
