@@ -58,15 +58,15 @@ public class FileStream {
 //		}
 //	}
 
-	/**
-	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
-	 * @param fileStreams zu schließende FileStreams
-	 */
-	public static void closeAll(Iterator<FileStream> fileStreams) {
-		while(fileStreams.hasNext()) {
-			fileStreams.next().close();
-		}
-	}
+//	/**
+//	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
+//	 * @param fileStreams zu schließende FileStreams
+//	 */
+//	public static void closeAll(Iterator<FileStream> fileStreams) {
+//		while(fileStreams.hasNext()) {
+//			fileStreams.next().close();
+//		}
+//	}
 
 	/**
 	 * Erzeugt das Objekt.

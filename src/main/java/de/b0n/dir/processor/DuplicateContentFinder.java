@@ -92,37 +92,46 @@ public class DuplicateContentFinder extends SearchProcessor {
                 final SearchProcessorModel<Integer, FileStream> sortedFiles = model.createNewModel();
                 addGroupElementTo(sortedFiles, inputFileStreams.iterator());
 
-                // Failing Streams schliessen und entfernen
-                if (sortedFiles.containsGroup(FAILING)) {
-                    if (callback != null) {
-                        callback.failedFiles(sortedFiles.getGroup(FAILING).size());
+                /* Failing Streams schliessen und entfernen */
+                {
+                    if (sortedFiles.containsGroup(FAILING)) {
+                        if (callback != null) {
+                            callback.failedFiles(sortedFiles.getGroup(FAILING).size());
+                        }
+                        final Iterator<FileStream> fileStreams = sortedFiles.removeGroup(FAILING).iterator();
+                        while (fileStreams.hasNext()) {
+                            fileStreams.next().close();
+                        }
                     }
-                    final Iterator<FileStream> fileStreams = sortedFiles.removeGroup(FAILING).iterator();
-                    while (fileStreams.hasNext()) {
-                        fileStreams.next().close();
-                    }
-                }
+                }/* Failing Streams */
 
-                // Unique Streams
-                final UnmodifiableQueue<FileStream> uniqueFiles = sortedFiles.removeUniques();
-                final int sizeOfUniqueFiles = uniqueFiles.size();
-                if (callback != null && sizeOfUniqueFiles > 0) {
-                    callback.uniqueFiles(sizeOfUniqueFiles);
-                }
-                final Iterator<FileStream> uniqueFilesIterator= uniqueFiles.iterator();
-                while(uniqueFilesIterator.hasNext()){
-                    uniqueFilesIterator.next().close();
-                }
-
-                // Finished Streams
-                if (sortedFiles.containsGroup(FINISHED)) {
-                    final UnmodifiableQueue<FileStream> finishedFiles = sortedFiles.removeGroup(FINISHED);
-                    result.add(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
-                    FileStream.closeAll(finishedFiles.iterator());
-                    if (callback != null) {
-                        callback.duplicateGroup(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
+                /* Unique Streams */
+                {
+                    final UnmodifiableQueue<FileStream> uniqueFiles = sortedFiles.removeUniques();
+                    final int sizeOfUniqueFiles = uniqueFiles.size();
+                    if (callback != null && sizeOfUniqueFiles > 0) {
+                        callback.uniqueFiles(sizeOfUniqueFiles);
                     }
-                }
+                    final Iterator<FileStream> uniqueFilesIterator = uniqueFiles.iterator();
+                    while (uniqueFilesIterator.hasNext()) {
+                        uniqueFilesIterator.next().close();
+                    }
+                }/* Unique Streams */
+
+                /* Finished Streams */
+                {
+                    if (sortedFiles.containsGroup(FINISHED)) {
+                        final UnmodifiableQueue<FileStream> finishedFiles = sortedFiles.removeGroup(FINISHED);
+                        result.add(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
+                        final Iterator<FileStream> finishedFilesIterator = finishedFiles.iterator();
+                        while (finishedFilesIterator.hasNext()) {
+                            finishedFilesIterator.next().close();
+                        }
+                        if (callback != null) {
+                            callback.duplicateGroup(FileStream.convertListOfFileStreamToListOfFiles(finishedFiles.iterator()));
+                        }
+                    }
+                }/* Finished Streams */
 
                 // Prepare for next iteration, die erste Gruppe wird hier verarbeitet
                 inputFileStreams = sortedFiles.popGroup();
