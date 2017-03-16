@@ -66,14 +66,32 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+			 	<executions>
+	 				<execution>
+	 					<id>package-assemblies</id>
+				 		<phase>install</phase>
+	 					<goals>
+							<goal>single</goal>
+						</goals>
+						<configuration>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+								<descriptorRef>src</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 	<distributionManagement>
 		<repository>
-            		<id>bintray-release</id>
-        		<name>oss-jfrog-artifactory-releases</name>
-        		<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
-	        </repository>
+ 		<id>bintray-release</id>
+ 		<name>oss-jfrog-artifactory-releases</name>
+ 		<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+	</repository>
 		<snapshotRepository>
 			<id>bintray-snapshots</id>
 			<name>oss-jfrog-artifactory-snapshots</name>
