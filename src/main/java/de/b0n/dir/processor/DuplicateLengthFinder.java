@@ -1,6 +1,8 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -11,188 +13,151 @@ import java.util.concurrent.Future;
 /**
  * Sucht in einem gegebenen Verzeichnis und dessen Unterverzeichnissen nach
  * Dateien und sortiert diese nach Dateigröße.
- * 
- * @author Claus
  *
+ * @author Claus
  */
-public class DuplicateLengthFinder {
+public class DuplicateLengthFinder extends SearchProcessor {
+    protected final SearchProcessorModel<Long, File> model;
+    protected final ExecutorService threadPool;
 
-	private final File folder;
-	private final ExecutorService threadPool;
-	private final DuplicateLengthFinderCallback callback;
+    protected static final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
 
-	private final Queue<Future<?>> futures = new ConcurrentLinkedQueue<Future<?>>();
-	private final Cluster<Long, File> result = new Cluster<Long, File>();
+    /**
+     * Bereitet für das gegebene Verzeichnis die Suche nach gleich großen
+     * Dateien vor.
+     *
+     * @param threadPool Pool zur Ausführung der Suchen
+     */
+    protected DuplicateLengthFinder(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool) {
+        if (model == null) {
+            throw new IllegalArgumentException("model may not be null.");
+        }
+        if (threadPool == null) {
+            throw new IllegalArgumentException("threadPool may not be null.");
+        }
 
-	/**
-	 * Bereitet für das gegebene Verzeichnis die Suche nach gleich großen
-	 * Dateien vor.
-	 * 
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
-	 * @param folder
-	 *            zu durchsuchendes Verzeichnis, muss existieren und lesbar sein
-	 */
-	private DuplicateLengthFinder(final File folder, final ExecutorService threadPool,
-			DuplicateLengthFinderCallback callback) {
-		String exceptionMessage = checkFolder(folder);
-		if (exceptionMessage != null) {
-			throw new IllegalArgumentException(exceptionMessage + folder.getAbsolutePath());
-		}
+        this.model = model;
+        this.threadPool = threadPool;
+    }
 
-		this.threadPool = threadPool;
-		this.folder = folder;
-		this.callback = callback;
-	}
+    protected DuplicateLengthFinder(final SearchProcessorModel<Long, File> model) {
+        this(model, Executors.newWorkStealingPool());
+    }
 
-	private String checkFolder(final File folder) {
-		String exceptionMessage = null;
-		if (folder.list() == null) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> kann nicht aufgelistet werden: ";
-		}
-		if (!folder.canRead()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist nicht lesbar: ";
-		}
-		if (!folder.isDirectory()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: ";
-		}
-		if (!folder.exists()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> existiert nicht: ";
-		}
-		return exceptionMessage;
-	}
+    /**
+     * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
+     * gleicher Größe.
+     *
+     * @param folder zu durchsuchendes Verzeichnis, muss existieren und lesbar sein
+     * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
+     * denen die gefundenen Dateien abgelegt sind
+     */
+    public void readFilesRecursiveOf(final File folder, final DuplicateLengthFinderCallback callback) {
 
-	private Cluster<Long, File> execute() {
-		futures.add(threadPool.submit(new DuplicateLengthRunner(folder)));
+        if (folder == null) {
+            throw new IllegalArgumentException("folder may not be null.");
+        }
 
-		while (!futures.isEmpty()) {
-			try {
-				futures.remove().get();
-			} catch (InterruptedException | ExecutionException e) {
-				throw new IllegalStateException("Threading has failed: " + e.getMessage(), e);
-			}
-		}
-		return result;
-	}
+        if (callback == null) {
+            throw new IllegalArgumentException("callback may not be null.");
+        }
 
-	private class DuplicateLengthRunner implements Runnable {
-		private final File folder;
+        futures.add(threadPool.submit(new DuplicateLengthRunner(this.model, this.threadPool, folder, callback)));
 
-		public DuplicateLengthRunner(File folder) {
-			this.folder = folder;
-		}
+        final Date startDate = new Date();
+        callback.processorStartAt(ID, startDate);
+        this.execute(folder);
+        callback.processorEndsAt(ID, startDate, new Date());
+    }
 
-		/**
-		 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
-		 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
-		 * Wartet die Unterverzeichnis-Suchen ab und merged deren
-		 * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
-		 */
-		@Override
-		public void run() {
-			String[] contents = folder.list();
-			if (contents == null) {
-				if (callback != null) {
-					callback.unreadableFolder(folder);
-				}
-				return;
-			}
 
-			for (String fileName : contents) {
-				File file = new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName);
+    protected SearchProcessorModel<Long, File> execute(final File folder) {
 
-				if (file.isDirectory()) {
-					String exceptionMessage = checkFolder(folder);
-					if (exceptionMessage == null) {
-						futures.add(threadPool.submit(new DuplicateLengthRunner(file)));
-						if (callback != null) {
-							callback.enteredNewFolder(file);
-						}
-					} else {
-						if (callback != null) {
-							callback.unreadableFolder(file);
-						}
-					}
-				}
 
-				if (file.isFile()) {
-					result.addGroupedElement(Long.valueOf(file.length()), file);
-				}
-			}
-			return;
-		}
-	}
+        while (!futures.isEmpty()) {
+            try {
+                futures.remove().get();
+            } catch (InterruptedException | ExecutionException e) {
+                throw new IllegalStateException("Threading has failed: " + e.getMessage(), e);
+            }
+        }
+        return model;
+    }
 
-	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe. Verwendet einen Executors.newWorkStealingPool() als
-	 * ThreadPool.
-	 * 
-	 * @param folder
-	 *            Zu durchsuchendes Verzeichnis
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
-	 */
-	public static Cluster<Long, File> getResult(final File folder) {
-		return getResult(folder, Executors.newWorkStealingPool(), null);
-	}
+    private static class DuplicateLengthRunner implements Runnable {
 
-	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe.
-	 * 
-	 * @param folder
-	 *            Zu durchsuchendes Verzeichnis
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
-	 */
-	public static Cluster<Long, File> getResult(final File folder, final ExecutorService threadPool) {
-		return getResult(folder, threadPool, null);
-	}
+        protected SearchProcessorModel<Long, File> model;
+        protected final ExecutorService threadPool;
+        protected final File folder;
+        protected final DuplicateLengthFinderCallback callback;
 
-	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe. Verwendet einen Executors.newWorkStealingPool() als
-	 * ThreadPool.
-	 * 
-	 * @param folder
-	 *            Zu durchsuchendes Verzeichnis
-	 * @param callback
-	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
-	 *            (darf null sein)
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
-	 */
-	public static Cluster<Long, File> getResult(final File folder, DuplicateLengthFinderCallback callback) {
-		return getResult(folder, Executors.newWorkStealingPool(), callback);
-	}
+        public DuplicateLengthRunner(final SearchProcessorModel<Long, File> model, final ExecutorService threadPool, final File folder, final DuplicateLengthFinderCallback callback) {
+            this.model = model;
+            this.threadPool = threadPool;
+            this.folder = folder;
+            this.callback = callback;
+        }
 
-	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe.
-	 * 
-	 * @param folder
-	 *            Zu durchsuchendes Verzeichnis
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
-	 * @param callback
-	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
-	 *            (darf null sein)
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
-	 */
-	public static Cluster<Long, File> getResult(final File folder, final ExecutorService threadPool,
-			DuplicateLengthFinderCallback callback) {
-		if (folder == null) {
-			throw new IllegalArgumentException("folder may not be null.");
-		}
+        private boolean isValidFolder(final File folder) {
+            boolean isValidFolder = true;
 
-		if (threadPool == null) {
-			throw new IllegalArgumentException("threadPool may not be null.");
-		}
+            if (!folder.exists()) {
+                isValidFolder = false;
+            }
+            if (!folder.isDirectory()) {
+                isValidFolder = false;
+            }
+            if (Files.isSymbolicLink(folder.toPath())) {
+                isValidFolder = false;
+            }
+            if (!folder.canRead()) {
+                isValidFolder = false;
+            }
+            if (folder.list() == null) {
+                isValidFolder = false;
+            }
+            return isValidFolder;
+        }
 
-		return new DuplicateLengthFinder(folder, threadPool, callback).execute();
-	}
+        /**
+         * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
+         * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
+         * Wartet die Unterverzeichnis-Suchen ab und merged deren
+         * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
+         */
+        @Override
+        public void run() {
+            final String[] contents = folder.list();
+            if (contents == null) {
+                if (callback != null) {
+                    callback.unreadableFolder(folder);
+                }
+                return;
+            }
+
+            for (String fileName : contents) {
+                final File file = new File(folder, fileName);
+
+                if (file.isFile()) {
+                    model.addGroupedElement(Long.valueOf(file.length()), file);
+                } else {
+                    final boolean isValidFolder = isValidFolder(folder);
+                    if (isValidFolder) {
+                        Thread.yield();
+                        System.gc();
+                        futures.add(threadPool.submit(new DuplicateLengthRunner(model, threadPool, file, callback)));
+                        if (callback != null) {
+                            callback.enteredNewFolder(file);
+                        }
+                    } else {
+                        if (callback != null) {
+                            callback.skipFolder(file);
+                        }
+                    }
+                }
+            }
+            return;
+        }
+    }
+
 }

@@ -61,7 +61,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>de.b0n.dir.DupFinder</mainClass>
+							<mainClass>de.b0n.dir.Launcher</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
