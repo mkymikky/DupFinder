@@ -68,11 +68,11 @@
 			</plugin>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-			 	<executions>
-	 				<execution>
-	 					<id>package-assemblies</id>
-				 		<phase>install</phase>
-	 					<goals>
+				<executions>
+					<execution>
+						<id>package-assemblies</id>
+						<phase>install</phase>
+						<goals>
 							<goal>single</goal>
 						</goals>
 						<configuration>
@@ -86,12 +86,23 @@
 			</plugin>
 		</plugins>
 	</build>
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.10.4</version>
+				<configuration>
+				</configuration>
+			</plugin>
+		</plugins>
+	</reporting>
 	<distributionManagement>
 		<repository>
- 		<id>bintray-release</id>
- 		<name>oss-jfrog-artifactory-releases</name>
- 		<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
-	</repository>
+			<id>bintray-release</id>
+			<name>oss-jfrog-artifactory-releases</name>
+			<url>https://oss.jfrog.org/artifactory/oss-release-local</url>
+		</repository>
 		<snapshotRepository>
 			<id>bintray-snapshots</id>
 			<name>oss-jfrog-artifactory-snapshots</name>
