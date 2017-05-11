@@ -18,7 +18,6 @@ public interface DuplicateLengthFinderCallback {
 
 	/**
 	 * Wird aufgerufen, wenn ein Verzeichnis nicht gelesen werden kann.
-	 * @param folder
 	 */
 	void unreadableFolder(File folder);
 
