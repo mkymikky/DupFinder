@@ -4,6 +4,7 @@
 	<groupId>de.b0n</groupId>
 	<artifactId>DupFinder</artifactId>
 	<version>0.0.1</version>
+	<url>http://b0n.de/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,6 +27,20 @@
 	</dependencies>
 
 	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-javadoc-plugin</artifactId>
+					<version>2.10.4</version>
+				</plugin>
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-project-info-reports-plugin</artifactId>
+					<version>2.9</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -61,7 +76,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>de.b0n.dir.DupFinder</mainClass>
+							<mainClass>de.b0n.dir.DupFinderConsole</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
@@ -87,7 +102,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.10.4</version>
 				<configuration>
 				</configuration>
 				<executions>
