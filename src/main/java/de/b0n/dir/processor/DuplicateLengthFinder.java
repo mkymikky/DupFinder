@@ -8,34 +8,45 @@ import java.util.concurrent.Future;
 /**
  * Sucht in einem gegebenen Verzeichnis und dessen Unterverzeichnissen nach
  * Dateien und sortiert diese nach Dateigröße.
- * 
- * @author Claus
- *
  */
 public class DuplicateLengthFinder extends AbstractProcessor implements Runnable {
 
 	private final File folder;
 	private final DuplicateLengthFinderCallback callback;
-
 	private final List<Future<?>> futures = new ArrayList<Future<?>>();
 
-	/**
-	 * Bereitet für das gegebene Verzeichnis die Suche nach gleich großen
-	 * Dateien vor.
-	 * 
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
-	 * @param folder
-	 *            zu durchsuchendes Verzeichnis, muss existieren und lesbar sein
-	 */
 	private DuplicateLengthFinder(final File folder, DuplicateLengthFinderCallback callback) {
 		String exceptionMessage = checkFolder(folder);
 		if (exceptionMessage != null) {
+			callback.unreadableFolder(folder);
 			throw new IllegalArgumentException(exceptionMessage + folder.getAbsolutePath());
 		}
 
 		this.folder = folder;
 		this.callback = callback;
+	}
+
+	/**
+	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
+	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
+	 * Wartet die Unterverzeichnis-Suchen ab und merged deren
+	 * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
+	 */
+	@Override
+	public void run() {
+		callback.enteredNewFolder(folder);
+
+		for (File file : readContent(folder)) {
+			if (file.isDirectory()) {
+				futures.add(submit(new DuplicateLengthFinder(file, callback)));
+			}
+
+			if (file.isFile()) {
+				callback.addGroupedElement(Long.valueOf(file.length()), file);
+			}
+		}
+
+		consolidate(futures);
 	}
 
 	private String checkFolder(final File folder) {
@@ -55,47 +66,9 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 		return exceptionMessage;
 	}
 
-	/**
-	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
-	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
-	 * Wartet die Unterverzeichnis-Suchen ab und merged deren
-	 * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
-	 */
-	@Override
-	public void run() {
-		List<File> contents = readContent(folder);
-		if (contents == null) {
-			callback.unreadableFolder(folder);
-			return;
-		}
-
-		for (File file : contents) {
-			if (file.isDirectory()) {
-				String exceptionMessage = checkFolder(file);
-				if (exceptionMessage == null) {
-					futures.add(submit(new DuplicateLengthFinder(file, callback)));
-					callback.enteredNewFolder(file);
-				} else {
-					callback.unreadableFolder(file);
-				}
-			}
-
-			if (file.isFile()) {
-				callback.addGroupedElement(Long.valueOf(file.length()), file);
-			}
-		}
-
-		consolidate(futures);
-	}
-
 	private List<File> readContent(File folder) {
-		String[] names = folder.list();
-		if (names == null) {
-			return null;
-		}
-
 		List<File> contents = new ArrayList<>();
-		for (String fileName : names) {
+		for (String fileName : folder.list()) {
 			contents.add(new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName));
 		}
 		return contents;

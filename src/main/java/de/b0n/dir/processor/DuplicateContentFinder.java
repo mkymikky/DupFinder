@@ -6,16 +6,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+/**
+ * Sucht von gegeben Dateigruppen die inhaltlichen Duplikate.
+ */
 public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
+
+	private Collection<FileStream> inputFileStreams;
+	private final DuplicateContentFinderCallback callback;
+	private final List<Future<?>> futures = new ArrayList<>();
+
 	private static final Integer FINISHED = Integer.valueOf(-1);
 	private static final Integer FAILING = Integer.valueOf(-2);
-
-	private final DuplicateContentFinderCallback callback;
-	
-	private Collection<FileStream> inputFileStreams;
 
 	public DuplicateContentFinder(final Collection<FileStream> files, final DuplicateContentFinderCallback callback) {
 		this.inputFileStreams = files;
@@ -24,7 +27,6 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 	
 	@Override
 	public void run() {
-		List<Future<?>> futures = new ArrayList<>();
 		Cluster<Integer, FileStream> sortedFiles = null;
 		
 		try {
@@ -68,14 +70,7 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 			}
 			throw e;
 		} finally {
-			for (Future<?> future : futures) {
-				try {
-					future.get();
-				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
+			consolidate(futures);
 		}
 	}		
 
@@ -140,12 +135,10 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 		if (input == null) {
 			throw new IllegalArgumentException("input may not be null.");
 		}
-		
-		try {
-			submit(new DuplicateContentFinder(FileStream.pack(input), callback)).get();
-		} catch (InterruptedException | ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (callback == null) {
+			throw new IllegalArgumentException("callback may not be null.");
 		}
+
+		consolidate(submit(new DuplicateContentFinder(FileStream.pack(input), callback)));
 	}
 }

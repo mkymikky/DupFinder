@@ -169,7 +169,12 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		Iterator<Queue<File>> elementsIterator = result.values().iterator(); 
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
 		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 4, elementsIterator.next().size());
-		assertEquals(5, foldersEntered.size());
+		String enteredFolders = "";
+		for (String string : foldersEntered) {
+			enteredFolders += string + "\n";
+		}
+		assertEquals("Following Folders have been entered:\n" + enteredFolders + "6 should have been entered", 6, foldersEntered.size());
+		assertListContainsLineEndingWith(foldersEntered, "resources");
 		assertListContainsLineEndingWith(foldersEntered, "duplicateTree");
 		assertListContainsLineEndingWith(foldersEntered, "subfolder");
 		assertListContainsLineEndingWith(foldersEntered, "folderOnlyFolder");
