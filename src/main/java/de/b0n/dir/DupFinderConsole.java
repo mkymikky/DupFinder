@@ -1,10 +1,8 @@
 package de.b0n.dir;
 
 import java.io.File;
-import java.util.Collection;
+import java.util.LinkedList;
 import java.util.Queue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import de.b0n.dir.processor.Cluster;
 import de.b0n.dir.processor.DuplicateContentFinder;
@@ -44,11 +42,13 @@ public class DupFinderConsole {
 			System.err.println(ERROR + UREADABLE_DIRECTORY + USAGE);
 			return;
 		}
+
+		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory);
 		
-		ExecutorService threadPool = Executors.newWorkStealingPool();
-		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory, threadPool);
-		Collection<Queue<File>> fileQueues = cluster.values();
-		Queue<Queue<File>> duplicateContentFilesQueues = DuplicateContentFinder.getResult(fileQueues, threadPool);
+		Queue<Queue<File>> duplicateContentFilesQueues = new LinkedList<>();
+		for (Queue<File> fileQueue : cluster.values()) {
+			duplicateContentFilesQueues.addAll(DuplicateContentFinder.getResult(fileQueue));
+		}
 		printQueues(duplicateContentFilesQueues);
 	}
     
