@@ -9,9 +9,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class DuplicateContentFinder {
-	private static final Integer FINISHED = Integer.valueOf(-1);
-	private static final Integer FAILING = Integer.valueOf(-2);
-
 	private final Collection<Queue<File>> input;
 	private final ExecutorService threadPool;
 	private final DuplicateContentFinderCallback callback;
@@ -31,7 +28,7 @@ public class DuplicateContentFinder {
 	
 	private Queue<Queue<File>> execute() {
 		for (Queue<File> files : input) {
-			futures.add(threadPool.submit(new DuplicateContentRunner(FileStream.pack(files))));
+			futures.add(threadPool.submit(new DuplicateContentRunner(FileReader.pack(files))));
 		}
 
 		while (!futures.isEmpty()) {
@@ -45,26 +42,26 @@ public class DuplicateContentFinder {
 	}
 	
 	private class DuplicateContentRunner implements Runnable {
-		private Collection<FileStream> inputFileStreams;
+		private Collection<FileReader> inputFileReader;
 
-		private DuplicateContentRunner(Collection<FileStream> inputFileStreams) {
-			this.inputFileStreams = inputFileStreams;
+		private DuplicateContentRunner(Collection<FileReader> inputFileReaders) {
+			this.inputFileReader = inputFileReaders;
 		}
 	
 		@Override
 		public void run() {
-			Cluster<Integer, FileStream> sortedFiles = null;
+			Cluster<Integer, FileReader> sortedFiles = null;
 			
 			try {
-				while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
-					sortedFiles = sortFilesByByte(inputFileStreams);
+				while (inputFileReader != null && !inputFileReader.isEmpty()) {
+					sortedFiles = sortFilesByByte(inputFileReader);
 					
 					// Failing Streams
-					if (sortedFiles.containsGroup(FAILING)) {
+					if (sortedFiles.containsGroup(FileReader.FAILING)) {
 						if (callback != null) {
-							callback.failedFiles(sortedFiles.getGroup(FAILING).size());
+							callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
 						}
-						FileStream.closeAll(sortedFiles.removeGroup(FAILING));
+						FileReader.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
 					}
 					
 					// Unique Streams
@@ -74,29 +71,29 @@ public class DuplicateContentFinder {
 					}
 	
 					// Finished Streams
-					Queue<FileStream> finishedFiles = null;
-					if (sortedFiles.containsGroup(FINISHED)) {
-						finishedFiles = sortedFiles.removeGroup(FINISHED);
-						result.add(FileStream.extract(finishedFiles));
-						FileStream.closeAll(finishedFiles);
+					Queue<FileReader> finishedFiles = null;
+					if (sortedFiles.containsGroup(FileReader.FINISHED)) {
+						finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
+						result.add(FileReader.extract(finishedFiles));
+						FileReader.closeAll(finishedFiles);
 						if (callback != null) {
-							callback.duplicateGroup(FileStream.extract(finishedFiles));
+							callback.duplicateGroup(FileReader.extract(finishedFiles));
 						}
 					}
 					
 					// Prepare for next iteration
-					inputFileStreams = sortedFiles.popGroup();
+					inputFileReader = sortedFiles.popGroup();
 					
 					// Outsource other groups
-					for (Queue<FileStream> fileStreams : sortedFiles.values()) {
-						futures.add(threadPool.submit(new DuplicateContentRunner(fileStreams)));
+					for (Queue<FileReader> FileReaders : sortedFiles.values()) {
+						futures.add(threadPool.submit(new DuplicateContentRunner(FileReaders)));
 					}
 				}
 			} catch(Exception e) {
-				FileStream.closeAll(inputFileStreams);
+				FileReader.closeAll(inputFileReader);
 				if (sortedFiles != null) {
-					for (Collection<FileStream> fileStreams : sortedFiles.values()) {
-						FileStream.closeAll(fileStreams);
+					for (Collection<FileReader> FileReaders : sortedFiles.values()) {
+						FileReader.closeAll(FileReaders);
 					}
 				}
 				throw e;
@@ -105,22 +102,22 @@ public class DuplicateContentFinder {
 	}
 
 	/**
-	 * Liest aus allen gegebenen FileStreams ein Byte und sortiert die FileStreams nach Ergebnis.
+	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die FileReaders nach Ergebnis.
 	 * Dadurch werden alle nicht-Dubletten bezüglich dieses Bytes in unterschiedliche Gruppen sortiert.
 	 * Ebenso werden alle vollständig gelesenen Dateien in eine eigene Gruppe sortiert INPUT(-1).
 	 * Dateien, welche nicht (mehr) gelesen werden können, fallen in die Kategrorie FAILED(-2).
-	 * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
-	 * @param inputFileStreams zu sortierende FileStreams
-	 * @return Cluster mit den nach Ergebnis sortierten FileStreams
+	 * Die restlichen FileReaders landen in den Gruppen des jeweils gelesenen Bytes.
+	 * @param inputFileReaders zu sortierende FileReaders
+	 * @return Cluster mit den nach Ergebnis sortierten FileReaders
 	 */
-	private Cluster<Integer, FileStream> sortFilesByByte(Collection<FileStream> inputFileStreams) {
-		Cluster<Integer, FileStream> sortedFiles = new Cluster<Integer, FileStream>();
-		for (FileStream sortFile : inputFileStreams) {
+	private Cluster<Integer, FileReader> sortFilesByByte(Collection<FileReader> inputFileReaders) {
+		Cluster<Integer, FileReader> sortedFiles = new Cluster<Integer, FileReader>();
+		for (FileReader sortFile : inputFileReaders) {
 			try {
 				sortedFiles.addGroupedElement(sortFile.read(), sortFile);
 			} catch (IllegalStateException e) {
 				System.out.println(e.getMessage());
-				sortedFiles.addGroupedElement(FAILING, sortFile);
+				sortedFiles.addGroupedElement(FileReader.FAILING, sortFile);
 			}								
 		}
 		return sortedFiles;

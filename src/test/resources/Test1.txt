@@ -1,3 +1,1 @@
-Uuuups ich bin eine kleine Textdatei.
-Sogar mit mehreren Sätzen und
-verschiedenen Zeilen.
+Uuuups ich bin eine kleine Textdatei.	Sogar mit mehreren Sätzen und	verschiedenen Spalten	

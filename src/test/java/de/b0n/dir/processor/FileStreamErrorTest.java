@@ -20,7 +20,7 @@ public class FileStreamErrorTest {
 	private BufferedInputStream stream;
 
 	@InjectMocks
-	private FileStream fileStream = new FileStream(file);
+	private FileReader fileStream = new FileReader(file);
 	
 	@Test
 	public void validRead() throws IOException {
@@ -52,7 +52,7 @@ public class FileStreamErrorTest {
 	public void validClose() throws IOException {
 		assertNotNull(fileStream);
 		
-		fileStream.close();
+		fileStream.clear();
 		
 		verify(stream).close();
 		verifyNoMoreInteractions(stream);
@@ -63,7 +63,7 @@ public class FileStreamErrorTest {
 		doThrow(new IOException("No Message")).when(stream).close();
 		
 		try {
-			fileStream.close();
+			fileStream.clear();
 		} catch (IllegalStateException e) {
 			assertEquals("Could not close Stream. Nothing to do about that, resetting FileStream.", e.getMessage());
 		}
