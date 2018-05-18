@@ -13,7 +13,8 @@ import java.util.concurrent.Future;
  */
 public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
 
-	private Collection<FileStream> inputFileStreams;
+	private Collection<FileReader> inputFileStreams;
+
 	private final DuplicateContentFinderCallback callback;
 	private final List<Future<?>> futures = new ArrayList<>();
 
@@ -34,9 +35,9 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 				sortedFiles = sortFilesByByte(inputFileStreams);
 				
 				// Failing Streams
-				if (sortedFiles.containsGroup(FAILING)) {
-					callback.failedFiles(sortedFiles.getGroup(FAILING).size());
-					FileStream.closeAll(sortedFiles.removeGroup(FAILING));
+				if (sortedFiles.containsGroup(FileReader.FAILING)) {
+					callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
+					FileStream.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
 				}
 				
 				// Unique Streams
@@ -48,7 +49,7 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 				// Finished Streams
 				Queue<FileStream> finishedFiles = null;
 				if (sortedFiles.containsGroup(FINISHED)) {
-					finishedFiles = sortedFiles.removeGroup(FINISHED);
+					finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
 					FileStream.closeAll(finishedFiles);
 					callback.duplicateGroup(FileStream.extract(finishedFiles));
 				}
@@ -75,22 +76,22 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 	}		
 
 	/**
-	 * Liest aus allen gegebenen FileStreams ein Byte und sortiert die FileStreams nach Ergebnis.
+	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die FileReaders nach Ergebnis.
 	 * Dadurch werden alle nicht-Dubletten bezüglich dieses Bytes in unterschiedliche Gruppen sortiert.
 	 * Ebenso werden alle vollständig gelesenen Dateien in eine eigene Gruppe sortiert INPUT(-1).
 	 * Dateien, welche nicht (mehr) gelesen werden können, fallen in die Kategrorie FAILED(-2).
-	 * Die restlichen FileStreams landen in den Gruppen des jeweils gelesenen Bytes.
-	 * @param inputFileStreams zu sortierende FileStreams
-	 * @return Cluster mit den nach Ergebnis sortierten FileStreams
+	 * Die restlichen FileReaders landen in den Gruppen des jeweils gelesenen Bytes.
+	 * @param inputFileReaders zu sortierende FileReaders
+	 * @return Cluster mit den nach Ergebnis sortierten FileReaders
 	 */
-	private Cluster<Integer, FileStream> sortFilesByByte(Collection<FileStream> inputFileStreams) {
-		Cluster<Integer, FileStream> sortedFiles = new Cluster<Integer, FileStream>();
-		for (FileStream sortFile : inputFileStreams) {
+	private Cluster<Integer, FileReader> sortFilesByByte(Collection<FileReader> inputFileReaders) {
+		Cluster<Integer, FileReader> sortedFiles = new Cluster<Integer, FileReader>();
+		for (FileReader sortFile : inputFileReaders) {
 			try {
 				sortedFiles.addGroupedElement(sortFile.read(), sortFile);
 			} catch (IllegalStateException e) {
 				System.out.println(e.getMessage());
-				sortedFiles.addGroupedElement(FAILING, sortFile);
+				sortedFiles.addGroupedElement(FileReader.FAILING, sortFile);
 			}								
 		}
 		return sortedFiles;
