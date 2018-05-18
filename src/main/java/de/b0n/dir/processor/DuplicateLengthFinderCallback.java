@@ -22,4 +22,11 @@ public interface DuplicateLengthFinderCallback {
 	 */
 	void unreadableFolder(File folder);
 
+	/**
+	 * Wird aufgerufen, wenn die Dateilänge einer Datei ermittelt wurde
+	 * @param size Länge der Datei
+	 * @param file Datei mit der ermittelten Länge
+	 */
+	void addGroupedElement(Long size, File file);
+
 }

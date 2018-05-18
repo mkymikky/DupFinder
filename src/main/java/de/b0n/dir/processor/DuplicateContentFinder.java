@@ -1,105 +1,79 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-public class DuplicateContentFinder {
-	private final Collection<Queue<File>> input;
-	private final ExecutorService threadPool;
+/**
+ * Sucht von gegeben Dateigruppen die inhaltlichen Duplikate.
+ */
+public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
+
+	private Collection<FileReader> inputFileStreams;
+
 	private final DuplicateContentFinderCallback callback;
+	private final List<Future<?>> futures = new ArrayList<>();
 
-	private final Queue<Queue<File>> result;
-	private final Queue<Future<?>> futures;
+	private static final Integer FINISHED = Integer.valueOf(-1);
+	private static final Integer FAILING = Integer.valueOf(-2);
 
-	public DuplicateContentFinder(final Collection<Queue<File>> input, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
-		this.input = input;
-		this.threadPool = threadPool;
+	public DuplicateContentFinder(final Collection<FileStream> files, final DuplicateContentFinderCallback callback) {
+		this.inputFileStreams = files;
 		this.callback = callback;
-
-		result = new ConcurrentLinkedQueue<Queue<File>>();
-		futures = new ConcurrentLinkedQueue<Future<?>>();
-
 	}
 	
-	private Queue<Queue<File>> execute() {
-		for (Queue<File> files : input) {
-			futures.add(threadPool.submit(new DuplicateContentRunner(FileReader.pack(files))));
-		}
-
-		while (!futures.isEmpty()) {
-			try {
-				futures.remove().get();
-			} catch (InterruptedException | ExecutionException e) {
-				throw new IllegalStateException("Threading has failes: " + e.getMessage(), e);
-			}
-		}
-		return result;
-	}
-	
-	private class DuplicateContentRunner implements Runnable {
-		private Collection<FileReader> inputFileReader;
-
-		private DuplicateContentRunner(Collection<FileReader> inputFileReaders) {
-			this.inputFileReader = inputFileReaders;
-		}
-	
-		@Override
-		public void run() {
-			Cluster<Integer, FileReader> sortedFiles = null;
-			
-			try {
-				while (inputFileReader != null && !inputFileReader.isEmpty()) {
-					sortedFiles = sortFilesByByte(inputFileReader);
-					
-					// Failing Streams
-					if (sortedFiles.containsGroup(FileReader.FAILING)) {
-						if (callback != null) {
-							callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
-						}
-						FileReader.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
-					}
-					
-					// Unique Streams
-					int uniqueFiles = sortedFiles.removeUniques().size();
-					if (callback != null && uniqueFiles > 0) {
-						callback.uniqueFiles(uniqueFiles);
-					}
-	
-					// Finished Streams
-					Queue<FileReader> finishedFiles = null;
-					if (sortedFiles.containsGroup(FileReader.FINISHED)) {
-						finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
-						result.add(FileReader.extract(finishedFiles));
-						FileReader.closeAll(finishedFiles);
-						if (callback != null) {
-							callback.duplicateGroup(FileReader.extract(finishedFiles));
-						}
-					}
-					
-					// Prepare for next iteration
-					inputFileReader = sortedFiles.popGroup();
-					
-					// Outsource other groups
-					for (Queue<FileReader> FileReaders : sortedFiles.values()) {
-						futures.add(threadPool.submit(new DuplicateContentRunner(FileReaders)));
-					}
+	@Override
+	public void run() {
+		Cluster<Integer, FileStream> sortedFiles = null;
+		
+		try {
+			while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
+				sortedFiles = sortFilesByByte(inputFileStreams);
+				
+				// Failing Streams
+				if (sortedFiles.containsGroup(FileReader.FAILING)) {
+					callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
+					FileStream.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
 				}
-			} catch(Exception e) {
-				FileReader.closeAll(inputFileReader);
-				if (sortedFiles != null) {
-					for (Collection<FileReader> FileReaders : sortedFiles.values()) {
-						FileReader.closeAll(FileReaders);
-					}
+				
+				// Unique Streams
+				int uniqueFiles = sortedFiles.removeUniques().size();
+				if (uniqueFiles > 0) {
+					callback.uniqueFiles(uniqueFiles);
 				}
-				throw e;
+
+				// Finished Streams
+				Queue<FileStream> finishedFiles = null;
+				if (sortedFiles.containsGroup(FINISHED)) {
+					finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
+					FileStream.closeAll(finishedFiles);
+					callback.duplicateGroup(FileStream.extract(finishedFiles));
+				}
+				
+				// Prepare first group for next iteration
+				inputFileStreams = sortedFiles.popGroup();
+				
+				// Outsource other groups
+				for (Queue<FileStream> fileStreams : sortedFiles.values()) {
+					futures.add(submit(new DuplicateContentFinder(fileStreams, callback)));
+				}
 			}
-		}		
-	}
+		} catch(Exception e) {
+			FileStream.closeAll(inputFileStreams);
+			if (sortedFiles != null) {
+				for (Collection<FileStream> fileStreams : sortedFiles.values()) {
+					FileStream.closeAll(fileStreams);
+				}
+			}
+			throw e;
+		} finally {
+			consolidate(futures);
+		}
+	}		
 
 	/**
 	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die FileReaders nach Ergebnis.
@@ -125,31 +99,47 @@ public class DuplicateContentFinder {
 
 	/**
 	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * Der ThreadPool, wenn noch nicht im Programm verwendet, kann mit Executors.newWorkStealingPool(); instantiiert werden.
 	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
-	 * @param threadPool ExecutorService zur Steuerung der Parallelisierung
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public static Queue<Queue<File>> getResult(final Collection<Queue<File>> input, final ExecutorService threadPool) {
-		return getResult(input, threadPool, null);
+	public static Queue<Queue<File>> getResult(final Queue<File> input) {
+		ConcurrentLinkedQueue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
+		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
+			
+			@Override
+			public void uniqueFiles(int uniqueFileCount) {
+				return;
+			}
+			
+			@Override
+			public void failedFiles(int size) {
+				return;
+			}
+			
+			@Override
+			public void duplicateGroup(Queue<File> duplicateGroup) {
+				result.add(duplicateGroup);
+			}
+		};
+		
+		getResult(input, callback);
+		
+		return result;
 	}
 
 	/**
 	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * Der ThreadPool, wenn noch nicht im Programm verwendet, kann mit Executors.newWorkStealingPool(); instantiiert werden.
 	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
-	 * @param threadPool ExecutorService zur Steuerung der Parallelisierung
-	 * @param callback Optionaler Callback, um über den Fortschritt der Dublettensuche informiert zu werden
-	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
+	 * @param callback Callback, um über die Ergebnisse der Dublettensuche informiert zu werden
 	 */
-	public static Queue<Queue<File>> getResult(final Collection<Queue<File>> input, final ExecutorService threadPool, final DuplicateContentFinderCallback callback) {
-		if (threadPool == null) {
-			throw new IllegalArgumentException("threadPool may not be null.");
-		}
+	public static void getResult(final Queue<File> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {
 			throw new IllegalArgumentException("input may not be null.");
 		}
-	
-		return new DuplicateContentFinder(input, threadPool, callback).execute();
+		if (callback == null) {
+			throw new IllegalArgumentException("callback may not be null.");
+		}
+
+		consolidate(submit(new DuplicateContentFinder(FileStream.pack(input), callback)));
 	}
 }

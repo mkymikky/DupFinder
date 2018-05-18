@@ -9,13 +9,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Takes Elements an groups them. All Operations try to be ThreadSafe.
- * 
- * @author Claus
- *
- * @param <G>
- *            Group type
- * @param <E>
- *            Element type
+ * @param <G> Group type
+ * @param <E> Element type
  */
 public class Cluster<G, E> {
 	private final Map<G, Queue<E>> map = new ConcurrentHashMap<G, Queue<E>>();
