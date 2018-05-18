@@ -13,31 +13,28 @@ import java.util.concurrent.Future;
  */
 public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
 
-	private Collection<FileReader> inputFileStreams;
+	private Collection<FileReader> inputFileReaders;
 
 	private final DuplicateContentFinderCallback callback;
 	private final List<Future<?>> futures = new ArrayList<>();
 
-	private static final Integer FINISHED = Integer.valueOf(-1);
-	private static final Integer FAILING = Integer.valueOf(-2);
-
-	public DuplicateContentFinder(final Collection<FileStream> files, final DuplicateContentFinderCallback callback) {
-		this.inputFileStreams = files;
+	public DuplicateContentFinder(final Collection<FileReader> files, final DuplicateContentFinderCallback callback) {
+		this.inputFileReaders = files;
 		this.callback = callback;
 	}
 	
 	@Override
 	public void run() {
-		Cluster<Integer, FileStream> sortedFiles = null;
+		Cluster<Integer, FileReader> sortedFiles = null;
 		
 		try {
-			while (inputFileStreams != null && !inputFileStreams.isEmpty()) {
-				sortedFiles = sortFilesByByte(inputFileStreams);
+			while (inputFileReaders != null && !inputFileReaders.isEmpty()) {
+				sortedFiles = sortFilesByByte(inputFileReaders);
 				
 				// Failing Streams
 				if (sortedFiles.containsGroup(FileReader.FAILING)) {
 					callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
-					FileStream.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
+					FileReader.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
 				}
 				
 				// Unique Streams
@@ -47,26 +44,26 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 				}
 
 				// Finished Streams
-				Queue<FileStream> finishedFiles = null;
-				if (sortedFiles.containsGroup(FINISHED)) {
+				Queue<FileReader> finishedFiles = null;
+				if (sortedFiles.containsGroup(FileReader.FINISHED)) {
 					finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
-					FileStream.closeAll(finishedFiles);
-					callback.duplicateGroup(FileStream.extract(finishedFiles));
+					FileReader.closeAll(finishedFiles);
+					callback.duplicateGroup(FileReader.extract(finishedFiles));
 				}
 				
 				// Prepare first group for next iteration
-				inputFileStreams = sortedFiles.popGroup();
+				inputFileReaders = sortedFiles.popGroup();
 				
 				// Outsource other groups
-				for (Queue<FileStream> fileStreams : sortedFiles.values()) {
-					futures.add(submit(new DuplicateContentFinder(fileStreams, callback)));
+				for (Queue<FileReader> FileReaders : sortedFiles.values()) {
+					futures.add(submit(new DuplicateContentFinder(FileReaders, callback)));
 				}
 			}
 		} catch(Exception e) {
-			FileStream.closeAll(inputFileStreams);
+			FileReader.closeAll(inputFileReaders);
 			if (sortedFiles != null) {
-				for (Collection<FileStream> fileStreams : sortedFiles.values()) {
-					FileStream.closeAll(fileStreams);
+				for (Collection<FileReader> FileReaders : sortedFiles.values()) {
+					FileReader.closeAll(FileReaders);
 				}
 			}
 			throw e;
@@ -140,6 +137,6 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 			throw new IllegalArgumentException("callback may not be null.");
 		}
 
-		consolidate(submit(new DuplicateContentFinder(FileStream.pack(input), callback)));
+		consolidate(submit(new DuplicateContentFinder(FileReader.pack(input), callback)));
 	}
 }
