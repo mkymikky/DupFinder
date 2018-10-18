@@ -96,8 +96,6 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 	 * 
 	 * @param folder
 	 *            Zu durchsuchendes Verzeichnis
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
 	 * @param callback
 	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
 	 */
