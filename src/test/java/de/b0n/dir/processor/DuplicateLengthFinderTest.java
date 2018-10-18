@@ -113,12 +113,32 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void scanUnreadableFolder() {
 		System.err.println("OS calls itself: " + System.getProperty("os.name"));
 		assumeTrue(System.getProperty("os.name").contains("Linux"));
 		File folder = new File("/root");
-		DuplicateLengthFinder.getResult(folder);
+		List<File> unreadables = new ArrayList<>();
+		DuplicateLengthFinder.getResult(folder, new DuplicateLengthFinderCallback() {
+			
+			@Override
+			public void unreadableFolder(File folder) {
+				unreadables.add(folder);
+			}
+			
+			@Override
+			public void enteredNewFolder(File folder) {
+			}
+			
+			@Override
+			public void addGroupedElement(Long size, File file) {
+				fail();				
+			}
+		});
+		
+		assertEquals(1, unreadables.size());
+		assertEquals(folder.getAbsolutePath(), unreadables.get(0).getAbsolutePath());
+
 	}
 
 	@Test
