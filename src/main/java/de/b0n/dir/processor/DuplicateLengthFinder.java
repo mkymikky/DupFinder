@@ -57,7 +57,7 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 	}
 
 	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
+	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien
 	 * gleicher Größe.
 	 * 
 	 * @param folder
@@ -91,7 +91,7 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 	}
 
 	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
+	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien
 	 * gleicher Größe.
 	 * 
 	 * @param folder
