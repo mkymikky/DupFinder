@@ -5,10 +5,9 @@ import java.util.Queue;
 
 public interface DuplicateContentFinderCallback {
 
-	void failedFiles(int size);
+	void failedFiles(Queue<File> failedFiles);
 
-	void duplicateGroup(Queue<File> duplicateGroup);
+	void duplicateGroup(Queue<File> duplicateFiles);
 
-	void uniqueFiles(int uniqueFileCount);
-
+	void uniqueFiles(Queue<File> uniqueFiles);
 }

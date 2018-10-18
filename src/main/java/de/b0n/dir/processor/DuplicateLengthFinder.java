@@ -16,21 +16,15 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 	private final List<Future<?>> futures = new ArrayList<Future<?>>();
 
 	private DuplicateLengthFinder(final File folder, DuplicateLengthFinderCallback callback) {
-		String exceptionMessage = checkFolder(folder);
-		if (exceptionMessage != null) {
-			callback.unreadableFolder(folder);
-			throw new IllegalArgumentException(exceptionMessage + folder.getAbsolutePath());
-		}
-
 		this.folder = folder;
 		this.callback = callback;
 	}
 
 	/**
 	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
-	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
-	 * Wartet die Unterverzeichnis-Suchen ab und merged deren
-	 * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
+	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt. Wartet
+	 * die Unterverzeichnis-Suchen ab und merged deren Ergebnisdateien. Liefert
+	 * das Gesamtergebnis zurück.
 	 */
 	@Override
 	public void run() {
@@ -49,50 +43,37 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 		consolidate(futures);
 	}
 
-	private String checkFolder(final File folder) {
-		String exceptionMessage = null;
-		if (folder.list() == null) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> kann nicht aufgelistet werden: ";
-		}
-		if (!folder.canRead()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist nicht lesbar: ";
-		}
-		if (!folder.isDirectory()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: ";
-		}
-		if (!folder.exists()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> existiert nicht: ";
-		}
-		return exceptionMessage;
-	}
-
 	private List<File> readContent(File folder) {
 		List<File> contents = new ArrayList<>();
-		for (String fileName : folder.list()) {
-			contents.add(new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName));
+		String[] folderContents = folder.list();
+		if (folderContents == null) {
+			callback.unreadableFolder(folder);
+		} else {
+			for (String fileName : folderContents) {
+				contents.add(new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName));
+			}
 		}
 		return contents;
 	}
 
 	/**
 	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe. Verwendet einen Executors.newWorkStealingPool() als
-	 * ThreadPool.
+	 * gleicher Größe.
 	 * 
 	 * @param folder
 	 *            Zu durchsuchendes Verzeichnis
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
+	 * @return Liefert ein Cluster nach Dateigröße strukturierten Queues zurück, in
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
 	public static Cluster<Long, File> getResult(final File folder) {
 		Cluster<Long, File> cluster = new Cluster<>();
 		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
-			
+
 			@Override
 			public void unreadableFolder(File folder) {
 				return;
 			}
-			
+
 			@Override
 			public void enteredNewFolder(File folder) {
 				return;
@@ -103,9 +84,9 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 				cluster.addGroupedElement(size, file);
 			}
 		};
-		
+
 		getResult(folder, callback);
-		
+
 		return cluster;
 	}
 
@@ -119,9 +100,6 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 	 *            Pool zur Ausführung der Suchen
 	 * @param callback
 	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
-	 *            (darf null sein)
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
 	 */
 	public static void getResult(final File folder, DuplicateLengthFinderCallback callback) {
 		if (folder == null) {
@@ -129,6 +107,12 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 		}
 		if (callback == null) {
 			throw new IllegalArgumentException("callback may not be null.");
+		}
+		if (!folder.exists()) {
+			throw new IllegalArgumentException("folder must exist.");
+		}
+		if (!folder.isDirectory()) {
+			throw new IllegalArgumentException("folder must be a valid folder.");
 		}
 
 		consolidate(submit(new DuplicateLengthFinder(folder, callback)));

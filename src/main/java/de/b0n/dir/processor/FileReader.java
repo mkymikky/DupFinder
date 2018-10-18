@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * Kapselt ein File und stellt darauf eine read()-Operation zur Verfügung.
- * Dient zum effizienten Teilen der Files bei unterschieden in den Streams und gleichzeitigem Halten des Stream-Zustands.
- * Die Datei wird erstmalig beim ersten Zugriff auf dessen Inhalt geöffnet.
+ * Dient zum effizienten Teilen der Files bei unterschieden in den Streams
+ * und gleichzeitigem Halten des Stream-Zustands. Die Datei wird lazy geöffnet.
  */
 public class FileReader {
 	/**
@@ -27,8 +27,11 @@ public class FileReader {
 	private BufferedInputStream stream;
 
 	/**
-	 * Packt die Collection von Dateien in jeweils in einen FileStream, zusammengefasst in einer Queue.
-	 * @param files In FileStreams zu kapselnde Files
+	 * Packt die Collection von Dateien in jeweils in einen FileStream,
+	 * zusammengefasst in einer Queue.
+	 * 
+	 * @param files
+	 *            In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
 	public static Queue<FileReader> pack(Collection<File> files) {
@@ -49,7 +52,9 @@ public class FileReader {
 
 	/**
 	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
-	 * @param fileStreams zu schließende FileStreams
+	 * 
+	 * @param fileStreams
+	 *            zu schließende FileStreams
 	 */
 	public static void closeAll(Collection<FileReader> fileStreams) {
 		for (FileReader fileStream : fileStreams) {
@@ -58,9 +63,10 @@ public class FileReader {
 	}
 
 	/**
-	 * Erzeugt das Objekt.
-	 * Der Stream zum Auslesen wird lazy erst bei Bedarf geöffnet.
-	 * @param file 
+	 * Erzeugt das Objekt. Der Stream zum Auslesen wird lazy erst bei Bedarf
+	 * geöffnet.
+	 * 
+	 * @param file
 	 */
 	public FileReader(File file) {
 		if (file == null) {
@@ -77,9 +83,10 @@ public class FileReader {
 		close();
 		return file;
 	}
-	
+
 	/**
 	 * Schließt den Dateistream nach der Analyse oder im Fehlerfall.
+	 * 
 	 */
 	private void close() {
 		if (stream == null) {
@@ -89,7 +96,8 @@ public class FileReader {
 		try {
 			stream.close();
 		} catch (IOException e) {
-			//Could not close Stream. Nothing to do about that, resetting FileStream
+				throw new IllegalStateException(
+						"Could not close Stream. Nothing to do about that, resetting FileStream.");
 		} finally {
 			stream = null;
 		}
@@ -97,6 +105,7 @@ public class FileReader {
 
 	/**
 	 * Liefert ein Byte aus dem geöffneten Dateistream zur Inhaltsanalyse.
+	 * 
 	 * @see InputStream.read()
 	 * @return Wert gemäß InputStream.read()
 	 */

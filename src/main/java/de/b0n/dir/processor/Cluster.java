@@ -18,7 +18,7 @@ public class Cluster<G, E> {
 	/**
 	 * Filtert Gruppen mit nur einem Element heraus.
 	 * 
-	 * @return Queue der entfernten einzigartigen Dateien
+	 * @return Queue der entfernten einzigartigen Dateien oder null wenn keine einmaligen Elemente existieren
 	 */
 	public Queue<E> removeUniques() {
 		Queue<E> uniques = new ConcurrentLinkedQueue<E>();
@@ -30,7 +30,7 @@ public class Cluster<G, E> {
 				}
 			}
 		}
-		return uniques;
+		return uniques.isEmpty() ? null : uniques;
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class Cluster<G, E> {
 		for (Queue<E> group : values()) {
 			size += group.size();
 			if (size < 0) {
-				size = Integer.MAX_VALUE;
+				return Integer.MAX_VALUE;
 			}
 		}
 		return size;

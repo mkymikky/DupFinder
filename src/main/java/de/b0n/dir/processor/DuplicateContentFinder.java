@@ -22,112 +22,101 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 		this.inputFileReaders = files;
 		this.callback = callback;
 	}
-	
+
 	@Override
 	public void run() {
 		Cluster<Integer, FileReader> sortedFiles = null;
-		
-		try {
+
 			while (inputFileReaders != null && !inputFileReaders.isEmpty()) {
 				sortedFiles = sortFilesByByte(inputFileReaders);
-				
-				// Failing Streams
-				if (sortedFiles.containsGroup(FileReader.FAILING)) {
-					callback.failedFiles(sortedFiles.getGroup(FileReader.FAILING).size());
-					FileReader.closeAll(sortedFiles.removeGroup(FileReader.FAILING));
-				}
-				
-				// Unique Streams
-				int uniqueFiles = sortedFiles.removeUniques().size();
-				if (uniqueFiles > 0) {
-					callback.uniqueFiles(uniqueFiles);
-				}
 
-				// Finished Streams
-				Queue<FileReader> finishedFiles = null;
-				if (sortedFiles.containsGroup(FileReader.FINISHED)) {
-					finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
-					FileReader.closeAll(finishedFiles);
-					callback.duplicateGroup(FileReader.extract(finishedFiles));
-				}
-				
-				// Prepare first group for next iteration
+			// Failing Streams
+			Queue<FileReader> failingFiles = sortedFiles.removeGroup(FileReader.FAILING);
+			if (failingFiles != null) {
+				// Already closed when error has been recognized
+				callback.failedFiles(FileReader.extract(failingFiles));
+			}
+
+			// Unique Files
+			Queue<FileReader> uniqueFiles = sortedFiles.removeUniques();
+			if (uniqueFiles != null) {
+				FileReader.closeAll(uniqueFiles);
+				callback.uniqueFiles(FileReader.extract(uniqueFiles));
+			}
+
+			// Finished Streams
+			Queue<FileReader> finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
+			if (finishedFiles != null) {
+				FileReader.closeAll(finishedFiles);
+				callback.duplicateGroup(FileReader.extract(finishedFiles));
+			}
+
+			// Prepare first group for next iteration
 				inputFileReaders = sortedFiles.popGroup();
-				
-				// Outsource other groups
-				for (Queue<FileReader> FileReaders : sortedFiles.values()) {
-					futures.add(submit(new DuplicateContentFinder(FileReaders, callback)));
-				}
+
+			// Outsource other groups
+			for (Queue<FileReader> FileReaders : sortedFiles.values()) {
+				futures.add(submit(new DuplicateContentFinder(FileReaders, callback)));
 			}
-		} catch(Exception e) {
-			FileReader.closeAll(inputFileReaders);
-			if (sortedFiles != null) {
-				for (Collection<FileReader> FileReaders : sortedFiles.values()) {
-					FileReader.closeAll(FileReaders);
-				}
-			}
-			throw e;
-		} finally {
-			consolidate(futures);
 		}
-	}		
+		consolidate(futures);
+	}
 
 	/**
-	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die FileReaders nach Ergebnis.
-	 * Dadurch werden alle nicht-Dubletten bezüglich dieses Bytes in unterschiedliche Gruppen sortiert.
-	 * Ebenso werden alle vollständig gelesenen Dateien in eine eigene Gruppe sortiert INPUT(-1).
-	 * Dateien, welche nicht (mehr) gelesen werden können, fallen in die Kategrorie FAILED(-2).
-	 * Die restlichen FileReaders landen in den Gruppen des jeweils gelesenen Bytes.
-	 * @param inputFileReaders zu sortierende FileReaders
-	 * @return Cluster mit den nach Ergebnis sortierten FileReaders
+	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die
+	 * FileReader nach Ergebnis. Dadurch werden alle nicht-Dubletten bezüglich
+	 * dieses Bytes in unterschiedliche Gruppen sortiert. Ebenso werden alle
+	 * vollständig gelesenen Dateien in eine eigene Gruppe sortiert
+	 * FINISHED(-1). Dateien, welche nicht (mehr) gelesen werden können, fallen
+	 * in die Kategrorie FAILED(-2). Die restlichen FileReader landen in den
+	 * Gruppen des jeweils gelesenen Bytes.
+	 * 
+	 * @param inputFileStreams
+	 *            zu sortierende FileStreams
+	 * @return Cluster mit den nach Ergebnis sortierten FileStreams
 	 */
 	private Cluster<Integer, FileReader> sortFilesByByte(Collection<FileReader> inputFileReaders) {
 		Cluster<Integer, FileReader> sortedFiles = new Cluster<Integer, FileReader>();
 		for (FileReader sortFile : inputFileReaders) {
-			try {
-				sortedFiles.addGroupedElement(sortFile.read(), sortFile);
-			} catch (IllegalStateException e) {
-				System.out.println(e.getMessage());
-				sortedFiles.addGroupedElement(FileReader.FAILING, sortFile);
-			}								
+			sortedFiles.addGroupedElement(sortFile.read(), sortFile);
 		}
 		return sortedFiles;
 	}
 
 	/**
-	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
+	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files
+	 * inhaltliche Dubletten.
+	 * 
+	 * @param input
+	 *            Dateigruppen, welche auf inhaltliche Gleichheit geprüft werden
+	 *            sollen
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
 	public static Queue<Queue<File>> getResult(final Queue<File> input) {
 		ConcurrentLinkedQueue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
-		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
-			
-			@Override
-			public void uniqueFiles(int uniqueFileCount) {
-				return;
-			}
-			
-			@Override
-			public void failedFiles(int size) {
-				return;
-			}
-			
+		DuplicateContentFinderCallback callback = new AbstractDuplicateContentFinderCallback() {
+
 			@Override
 			public void duplicateGroup(Queue<File> duplicateGroup) {
 				result.add(duplicateGroup);
 			}
 		};
-		
+
 		getResult(input, callback);
-		
+
 		return result;
 	}
 
 	/**
-	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files inhaltliche Dubletten.
-	 * @param input Dateigruppen, welche auf Inhaltliche gleichheit geprüft werden sollen
-	 * @param callback Callback, um über die Ergebnisse der Dublettensuche informiert zu werden
+	 * Ermittelt anhand der optional nach Dateigröße vorgruppierten Files
+	 * inhaltliche Dubletten.
+	 * 
+	 * @param input
+	 *            Dateigruppen, welche auf inhaltliche Gleichheit geprüft werden
+	 *            sollen
+	 * @param callback
+	 *            Callback, um über die Ergebnisse der Dublettensuche informiert
+	 *            zu werden
 	 */
 	public static void getResult(final Queue<File> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {

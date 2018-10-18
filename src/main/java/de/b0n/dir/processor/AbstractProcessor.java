@@ -9,21 +9,23 @@ import java.util.concurrent.Future;
 
 public abstract class AbstractProcessor {
 	private static final ExecutorService THREAD_POOL = Executors.newWorkStealingPool();
-	
+
 	static protected Future<?> submit(Runnable runnable) {
 		return THREAD_POOL.submit(runnable);
 	}
-	
+
 	static void consolidate(Collection<Future<?>> futures) {
 		for (Future<?> future : futures) {
 			try {
 				future.get();
-			} catch (InterruptedException | ExecutionException e) {
-				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// Nothing to do here, Thread is already stopped
+			} catch (ExecutionException e) {
+				throw new IllegalStateException(e.getCause().getLocalizedMessage(), e.getCause());
 			}
 		}
 	}
-	
+
 	static void consolidate(Future<?>... futures) {
 		consolidate(Arrays.asList(futures));
 	}
