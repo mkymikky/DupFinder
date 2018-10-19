@@ -21,7 +21,7 @@ public abstract class AbstractProcessor {
 			} catch (InterruptedException e) {
 				// Nothing to do here, Thread is already stopped
 			} catch (ExecutionException e) {
-				throw new IllegalStateException(e.getCause().getLocalizedMessage(), e.getCause());
+				throw new IllegalStateException("Thread could not be consolidated", e);
 			}
 		}
 	}
