@@ -13,13 +13,13 @@ import java.util.concurrent.Future;
  */
 public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
 
-	private Collection<FileReader> inputFileReaders;
+	private Collection<FileReader> currentCandidates;
 
 	private final DuplicateContentFinderCallback callback;
 	private final List<Future<?>> futures = new ArrayList<>();
 
 	public DuplicateContentFinder(final Collection<FileReader> files, final DuplicateContentFinderCallback callback) {
-		this.inputFileReaders = files;
+		this.currentCandidates = files;
 		this.callback = callback;
 	}
 
@@ -27,36 +27,51 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 	public void run() {
 		Cluster<Integer, FileReader> sortedFiles = null;
 
-			while (inputFileReaders != null && !inputFileReaders.isEmpty()) {
-				sortedFiles = sortFilesByByte(inputFileReaders);
+		while (currentCandidates != null) {
+			sortedFiles = sortFilesByByte(currentCandidates);
 
 			// Failing Streams
-			Queue<FileReader> failingFiles = sortedFiles.removeGroup(FileReader.FAILING);
-			if (failingFiles != null) {
+			Queue<FileReader> failedFiles = sortedFiles.removeGroup(FileReader.FAILING);
+			if (failedFiles != null) {
+				if (failedFiles.isEmpty()) {
+					throw new IllegalStateException("Empty group of failed files occurred");
+				}
 				// Already closed when error has been recognized
-				callback.failedFiles(FileReader.extract(failingFiles));
+				callback.failedFiles(FileReader.extract(failedFiles));
 			}
 
 			// Unique Files
-			Queue<FileReader> uniqueFiles = sortedFiles.removeUniques();
-			if (uniqueFiles != null) {
-				FileReader.closeAll(uniqueFiles);
-				callback.uniqueFiles(FileReader.extract(uniqueFiles));
+			Queue<FileReader> uniques = sortedFiles.removeUniques();
+			if (uniques != null) {
+				if (uniques.isEmpty()) {
+					throw new IllegalStateException("Empty group of uniques occurred");
+				}
+				FileReader.closeAll(uniques);
+				callback.uniqueFiles(FileReader.extract(uniques));
 			}
 
 			// Finished Streams
-			Queue<FileReader> finishedFiles = sortedFiles.removeGroup(FileReader.FINISHED);
-			if (finishedFiles != null) {
-				FileReader.closeAll(finishedFiles);
-				callback.duplicateGroup(FileReader.extract(finishedFiles));
+			Queue<FileReader> duplicates = sortedFiles.removeGroup(FileReader.FINISHED);
+			if (duplicates != null) {
+				if (duplicates.size() < 2) {
+					throw new IllegalStateException("Single or empty duplicates occurred: " + FileReader.getContentDescription(duplicates));
+				}
+				FileReader.closeAll(duplicates);
+				callback.duplicateGroup(FileReader.extract(duplicates));
 			}
 
 			// Prepare first group for next iteration
-				inputFileReaders = sortedFiles.popGroup();
+			currentCandidates = sortedFiles.popGroup();
+			if (currentCandidates != null && currentCandidates.size() < 2) {
+				throw new IllegalStateException("Single or empty candidates occurred: " + FileReader.getContentDescription(currentCandidates));
+			}
 
 			// Outsource other groups
-			for (Queue<FileReader> FileReaders : sortedFiles.values()) {
-				futures.add(submit(new DuplicateContentFinder(FileReaders, callback)));
+			for (Queue<FileReader> outsourcedCandidates : sortedFiles.values()) {
+				if (outsourcedCandidates.size() < 2) {
+					throw new IllegalStateException("Single or empty candidates occurred: " + FileReader.getContentDescription(outsourcedCandidates));
+				}
+				futures.add(submit(new DuplicateContentFinder(outsourcedCandidates, callback)));
 			}
 		}
 		consolidate(futures);

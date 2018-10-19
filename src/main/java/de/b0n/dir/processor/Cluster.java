@@ -137,7 +137,7 @@ public class Cluster<G, E> {
 	/**
 	 * Liefert die erste verfügbare Gruppe und entfernt diese aus dem Cluster.
 	 * 
-	 * @return Elemente der ersten verfügbaren Gruppe
+	 * @return Elemente der ersten verfügbaren Gruppe, oder null, wenn keine Gruppe vorhanden ist
 	 */
 	public Queue<E> popGroup() {
 		synchronized (this) {

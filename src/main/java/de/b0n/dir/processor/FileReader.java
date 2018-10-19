@@ -9,9 +9,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * Kapselt ein File und stellt darauf eine read()-Operation zur Verfügung.
- * Dient zum effizienten Teilen der Files bei unterschieden in den Streams
- * und gleichzeitigem Halten des Stream-Zustands. Die Datei wird lazy geöffnet.
+ * Kapselt ein File und stellt darauf eine read()-Operation zur Verfügung. Dient
+ * zum effizienten Teilen der Files bei unterschieden in den Streams und
+ * gleichzeitigem Halten des Stream-Zustands. Die Datei wird lazy geöffnet.
  */
 public class FileReader {
 	/**
@@ -77,6 +77,7 @@ public class FileReader {
 
 	/**
 	 * Schließt den Stream im dem Adapter und liefert das File.
+	 * 
 	 * @return zum Stream-Initialisieren genutzes File
 	 */
 	public File clear() {
@@ -96,8 +97,7 @@ public class FileReader {
 		try {
 			stream.close();
 		} catch (IOException e) {
-				throw new IllegalStateException(
-						"Could not close Stream. Nothing to do about that, resetting FileStream.");
+			throw new IllegalStateException("Could not close Stream. Nothing to do about that, resetting FileStream.");
 		} finally {
 			stream = null;
 		}
@@ -120,5 +120,25 @@ public class FileReader {
 			close();
 		}
 		return data;
+	}
+
+	/**
+	 * Liefert die Anzahl und die Dateinamen der in einer Collection enthaltenen FileReader-Dateien.
+	 * @param fileReaders zu Beschreibenede Collection
+	 * @return Textuelle Beschreibung der Collection; Anzahl und die Dateinamen der enthaltenen Dateien
+	 */
+	public static String getContentDescription(Collection<FileReader> fileReaders) {
+		StringBuffer contentDescription = new StringBuffer();
+		
+		contentDescription.append("File count: ");
+		contentDescription.append(fileReaders.size());
+		contentDescription.append('\n');
+
+		for (FileReader fileReader : fileReaders) {
+			contentDescription.append(fileReader.file.getAbsolutePath());
+			contentDescription.append('\n');
+		}
+		
+		return contentDescription.toString();
 	}
 }
