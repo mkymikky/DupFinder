@@ -106,7 +106,7 @@ public class FileReader {
 	/**
 	 * Liefert ein Byte aus dem geöffneten Dateistream zur Inhaltsanalyse.
 	 * 
-	 * @see InputStream.read()
+	 * @see #InputStream.read()
 	 * @return Wert gemäß InputStream.read()
 	 */
 	public int read() {

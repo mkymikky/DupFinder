@@ -6,7 +6,9 @@ import java.util.Queue;
 
 import de.b0n.dir.processor.Cluster;
 import de.b0n.dir.processor.DuplicateContentFinder;
+import de.b0n.dir.processor.DuplicateContentFinderCallback;
 import de.b0n.dir.processor.DuplicateLengthFinder;
+import de.b0n.dir.processor.DuplicateLengthFinderCallback;
 
 /**
  * Einfache Konsolenanwendung zur Ausgabe der gefundenen Dubletten in einem übergebenen Verzeichnis.
