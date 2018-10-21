@@ -36,30 +36,12 @@ public class FileReader {
 	 */
 	public static Queue<FileReader> pack(Collection<File> files) {
 		Queue<FileReader> fileStreams = new ConcurrentLinkedQueue<FileReader>();
-		for (File file : files) {
+		files.forEach(file ->
+		{
 			fileStreams.add(new FileReader(file));
 		}
+		);
 		return fileStreams;
-	}
-
-	public static Queue<File> extract(Collection<FileReader> fileStreams) {
-		Queue<File> filesQueue = new ConcurrentLinkedQueue<File>();
-		for (FileReader fileStream : fileStreams) {
-			filesQueue.add(fileStream.clear());
-		}
-		return filesQueue;
-	}
-
-	/**
-	 * Schließt alle Streams der im FileStream hinterlegten Dateien.
-	 * 
-	 * @param fileStreams
-	 *            zu schließende FileStreams
-	 */
-	public static void closeAll(Collection<FileReader> fileStreams) {
-		for (FileReader fileStream : fileStreams) {
-			fileStream.close();
-		}
 	}
 
 	/**
@@ -120,25 +102,5 @@ public class FileReader {
 			close();
 		}
 		return data;
-	}
-
-	/**
-	 * Liefert die Anzahl und die Dateinamen der in einer Collection enthaltenen FileReader-Dateien.
-	 * @param fileReaders zu Beschreibenede Collection
-	 * @return Textuelle Beschreibung der Collection; Anzahl und die Dateinamen der enthaltenen Dateien
-	 */
-	public static String getContentDescription(Collection<FileReader> fileReaders) {
-		StringBuffer contentDescription = new StringBuffer();
-		
-		contentDescription.append("File count: ");
-		contentDescription.append(fileReaders.size());
-		contentDescription.append('\n');
-
-		for (FileReader fileReader : fileReaders) {
-			contentDescription.append(fileReader.file.getAbsolutePath());
-			contentDescription.append('\n');
-		}
-		
-		return contentDescription.toString();
 	}
 }

@@ -3,32 +3,39 @@ package de.b0n.dir.processor;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
- * Takes Elements an groups them. All Operations try to be ThreadSafe.
- * @param <G> Group type
- * @param <E> Element type
+ * Takes Elements an groups them. All Operations try to be Threadsafe.
+ * 
+ * @param <G>
+ *            Group type
+ * @param <E>
+ *            Element type
  */
 public class Cluster<G, E> {
 	private final Map<G, Queue<E>> map = new ConcurrentHashMap<G, Queue<E>>();
 
+	private final Predicate<Queue<E>> singleElements = it -> it.size() < 2;
+	private final Predicate<Entry<G, Queue<E>>> queueUnique = it -> it.getValue().size() < 2;
+
 	/**
 	 * Filtert Gruppen mit nur einem Element heraus.
 	 * 
-	 * @return Queue der entfernten einzigartigen Dateien oder null wenn keine einmaligen Elemente existieren
+	 * @return Queue der entfernten einzigartigen Dateien oder null wenn keine
+	 *         einmaligen Elemente existieren
 	 */
 	public Queue<E> removeUniques() {
 		Queue<E> uniques = new ConcurrentLinkedQueue<E>();
 		synchronized (this) {
-			for (G group : map.keySet()) {
-				Queue<E> elements = map.get(group);
-				if (elements.size() <= 1) {
-					uniques.addAll(map.remove(group));
-				}
-			}
+			uniques = map.values().parallelStream().filter(singleElements).flatMap(it -> it.stream())
+					.collect(Collectors.toCollection(ConcurrentLinkedQueue::new));
+			map.entrySet().removeIf(queueUnique);
 		}
 		return uniques.isEmpty() ? null : uniques;
 	}
@@ -57,8 +64,8 @@ public class Cluster<G, E> {
 	 * 
 	 * @param group
 	 *            Key der zu liefernden Gruppe
-	 * @return Liefert die in der Map enthaltene Gruppe oder eine neue, der Map
-	 *         mit diesem Key hinzugefügten Gruppe
+	 * @return Liefert die in der Map enthaltene Gruppe oder eine neue, der Map mit
+	 *         diesem Key hinzugefügten Gruppe
 	 */
 	private Queue<E> getOrInitializeGroup(G group) {
 		Queue<E> elements;
@@ -117,9 +124,8 @@ public class Cluster<G, E> {
 	}
 
 	/**
-	 * Liefert die Gesamtanzahl der Elemente über alle Gruppen. Falls dieser
-	 * Cluster mehr als Integer.MAX_VALUE Elemente enthält, liefert er
-	 * Integer.MAX_VALUE.
+	 * Liefert die Gesamtanzahl der Elemente über alle Gruppen. Falls dieser Cluster
+	 * mehr als Integer.MAX_VALUE Elemente enthält, liefert er Integer.MAX_VALUE.
 	 * 
 	 * @return Anzahl aller Elemente im Cluster
 	 */
@@ -137,7 +143,8 @@ public class Cluster<G, E> {
 	/**
 	 * Liefert die erste verfügbare Gruppe und entfernt diese aus dem Cluster.
 	 * 
-	 * @return Elemente der ersten verfügbaren Gruppe, oder null, wenn keine Gruppe vorhanden ist
+	 * @return Elemente der ersten verfügbaren Gruppe, oder null, wenn keine Gruppe
+	 *         vorhanden ist
 	 */
 	public Queue<E> popGroup() {
 		synchronized (this) {

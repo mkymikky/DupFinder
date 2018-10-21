@@ -1,101 +1,75 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Sucht von gegeben Dateigruppen die inhaltlichen Duplikate.
  */
-public class DuplicateContentFinder extends AbstractProcessor implements Runnable {
+public class DuplicateContentFinder implements Runnable {
+
+	private static final Function<FileReader, Integer> fileReaderToInt = fileReader -> fileReader.read();
+	private static final Function<FileReader, File> fileReaderToFile = fileReader -> fileReader.clear();
+	private static final Function<Entry<Integer, List<FileReader>>, Integer> entryToKey = entry -> entry.getKey();
+	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = entry -> entry.getValue();
+	private static final Predicate<Entry<Integer, List<FileReader>>> hasSingleItemInEntry = entry -> entry.getValue().size() < 2;
 
 	private Collection<FileReader> currentCandidates;
 
 	private final DuplicateContentFinderCallback callback;
-	private final List<Future<?>> futures = new ArrayList<>();
+	private final Executor executor;
 
-	public DuplicateContentFinder(final Collection<FileReader> files, final DuplicateContentFinderCallback callback) {
+	public DuplicateContentFinder(final Collection<FileReader> files, final DuplicateContentFinderCallback callback,
+			Executor executor) {
 		this.currentCandidates = files;
 		this.callback = callback;
+		this.executor = executor;
 	}
 
 	@Override
 	public void run() {
-		Cluster<Integer, FileReader> sortedFiles = null;
-
 		while (currentCandidates != null) {
-			sortedFiles = sortFilesByByte(currentCandidates);
+			Map<Integer, List<FileReader>> sortedFiles = currentCandidates.parallelStream()
+					.collect(Collectors.groupingByConcurrent(fileReaderToInt));
+			currentCandidates = null;
 
-			// Failing Streams
-			Queue<FileReader> failedFiles = sortedFiles.removeGroup(FileReader.FAILING);
-			if (failedFiles != null) {
-				if (failedFiles.isEmpty()) {
-					throw new IllegalStateException("Empty group of failed files occurred");
-				}
-				// Already closed when error has been recognized
-				callback.failedFiles(FileReader.extract(failedFiles));
+			// Failed Files
+			List<FileReader> failingFiles = sortedFiles.remove(FileReader.FAILING);
+			if (failingFiles != null) {
+				failingFiles.parallelStream().map(fileReaderToFile).forEach(file -> callback.failedFile(file));
+				failingFiles = null;
 			}
 
 			// Unique Files
-			Queue<FileReader> uniques = sortedFiles.removeUniques();
-			if (uniques != null) {
-				if (uniques.isEmpty()) {
-					throw new IllegalStateException("Empty group of uniques occurred");
-				}
-				FileReader.closeAll(uniques);
-				callback.uniqueFiles(FileReader.extract(uniques));
-			}
+			List<Entry<Integer, List<FileReader>>> uniqueEntries = sortedFiles.entrySet().parallelStream().filter(hasSingleItemInEntry).collect(Collectors.toList());
+			uniqueEntries.parallelStream().map(entryToKey).forEach(key -> sortedFiles.remove(key));
+			uniqueEntries.parallelStream().map(entryToValue).flatMap(list -> list.parallelStream()).map(fileReaderToFile).forEach(file -> callback.uniqueFile(file));
+			uniqueEntries = null;
 
-			// Finished Streams
-			Queue<FileReader> duplicates = sortedFiles.removeGroup(FileReader.FINISHED);
-			if (duplicates != null) {
-				if (duplicates.size() < 2) {
-					throw new IllegalStateException("Single or empty duplicates occurred: " + FileReader.getContentDescription(duplicates));
-				}
-				FileReader.closeAll(duplicates);
-				callback.duplicateGroup(FileReader.extract(duplicates));
+			// Duplicate Files
+			List<FileReader> duplicateFiles = sortedFiles.remove(FileReader.FINISHED);
+			if (duplicateFiles != null) {
+				callback.duplicateGroup(duplicateFiles.parallelStream().map(fileReaderToFile)
+						.collect(Collectors.toList()));
+				duplicateFiles = null;
+
 			}
 
 			// Prepare first group for next iteration
-			currentCandidates = sortedFiles.popGroup();
-			if (currentCandidates != null && currentCandidates.size() < 2) {
-				throw new IllegalStateException("Single or empty candidates occurred: " + FileReader.getContentDescription(currentCandidates));
-			}
+			sortedFiles.values().stream().limit(1).forEach(list -> currentCandidates = list);
 
 			// Outsource other groups
-			for (Queue<FileReader> outsourcedCandidates : sortedFiles.values()) {
-				if (outsourcedCandidates.size() < 2) {
-					throw new IllegalStateException("Single or empty candidates occurred: " + FileReader.getContentDescription(outsourcedCandidates));
-				}
-				futures.add(submit(new DuplicateContentFinder(outsourcedCandidates, callback)));
-			}
+			sortedFiles.values().stream().skip(1).forEach(outsourcedCandidates -> executor
+					.submit(new DuplicateContentFinder(outsourcedCandidates, callback, executor)));
 		}
-		consolidate(futures);
-	}
-
-	/**
-	 * Liest aus allen gegebenen FileReaders ein Byte und sortiert die
-	 * FileReader nach Ergebnis. Dadurch werden alle nicht-Dubletten bezüglich
-	 * dieses Bytes in unterschiedliche Gruppen sortiert. Ebenso werden alle
-	 * vollständig gelesenen Dateien in eine eigene Gruppe sortiert
-	 * FINISHED(-1). Dateien, welche nicht (mehr) gelesen werden können, fallen
-	 * in die Kategrorie FAILED(-2). Die restlichen FileReader landen in den
-	 * Gruppen des jeweils gelesenen Bytes.
-	 * 
-	 * @param inputFileStreams
-	 *            zu sortierende FileStreams
-	 * @return Cluster mit den nach Ergebnis sortierten FileStreams
-	 */
-	private Cluster<Integer, FileReader> sortFilesByByte(Collection<FileReader> inputFileReaders) {
-		Cluster<Integer, FileReader> sortedFiles = new Cluster<Integer, FileReader>();
-		for (FileReader sortFile : inputFileReaders) {
-			sortedFiles.addGroupedElement(sortFile.read(), sortFile);
-		}
-		return sortedFiles;
 	}
 
 	/**
@@ -107,12 +81,12 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 	 *            sollen
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public static Queue<Queue<File>> getResult(final Queue<File> input) {
-		ConcurrentLinkedQueue<Queue<File>> result = new ConcurrentLinkedQueue<Queue<File>>();
-		DuplicateContentFinderCallback callback = new AbstractDuplicateContentFinderCallback() {
+	public static Queue<List<File>> getResult(final Queue<File> input) {
+		ConcurrentLinkedQueue<List<File>> result = new ConcurrentLinkedQueue<>();
+		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
 
 			@Override
-			public void duplicateGroup(Queue<File> duplicateGroup) {
+			public void duplicateGroup(List<File> duplicateGroup) {
 				result.add(duplicateGroup);
 			}
 		};
@@ -130,8 +104,8 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 	 *            Dateigruppen, welche auf inhaltliche Gleichheit geprüft werden
 	 *            sollen
 	 * @param callback
-	 *            Callback, um über die Ergebnisse der Dublettensuche informiert
-	 *            zu werden
+	 *            Callback, um über die Ergebnisse der Dublettensuche informiert zu
+	 *            werden
 	 */
 	public static void getResult(final Queue<File> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {
@@ -141,6 +115,8 @@ public class DuplicateContentFinder extends AbstractProcessor implements Runnabl
 			throw new IllegalArgumentException("callback may not be null.");
 		}
 
-		consolidate(submit(new DuplicateContentFinder(FileReader.pack(input), callback)));
+		Executor executor = new Executor();
+		executor.submit(new DuplicateContentFinder(FileReader.pack(input), callback, executor));
+		executor.consolidate();
 	}
 }

@@ -1,14 +1,16 @@
 package de.b0n.dir;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import de.b0n.dir.processor.Cluster;
 import de.b0n.dir.processor.DuplicateContentFinder;
-import de.b0n.dir.processor.DuplicateContentFinderCallback;
 import de.b0n.dir.processor.DuplicateLengthFinder;
-import de.b0n.dir.processor.DuplicateLengthFinderCallback;
 
 /**
  * Einfache Konsolenanwendung zur Ausgabe der gefundenen Dubletten in einem übergebenen Verzeichnis.
@@ -45,23 +47,28 @@ public class DupFinderConsole {
 			return;
 		}
 
+		DateFormat timeInstance = SimpleDateFormat.getTimeInstance();
+		System.out.println("Begin finding lengths: " + timeInstance.format(new Date()));
 		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory);
 		
-		Queue<Queue<File>> duplicateContentFilesQueues = new LinkedList<>();
+		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
+		Queue<Collection<File>> duplicateContentFilesQueues = new LinkedList<>();
 		for (Queue<File> fileQueue : cluster.values()) {
 			duplicateContentFilesQueues.addAll(DuplicateContentFinder.getResult(fileQueue));
 		}
+		System.out.println("Begin printing results: " + timeInstance.format(new Date()));
 		printQueues(duplicateContentFilesQueues);
+		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
     
-	private static void printQueues(Queue<Queue<File>> queues) {
-		for (Queue<File> files : queues) {
+	private static void printQueues(Collection<Collection<File>> queues) {
+		for (Collection<File> files : queues) {
 			printFiles(files);
 			System.out.println();
 		}
 	}
 
-	private static void printFiles(Queue<File> files) {
+	private static void printFiles(Collection<File> files) {
 		for (File file : files) {
 			printFile(file);
 		}

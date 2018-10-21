@@ -13,8 +13,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
@@ -28,32 +26,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	private static final String PATH_PLENTY_SAME_SIZE_FOLDER = "src/test/resources/";
 	private static final String PATH_SAME_SIZE_IN_FLAT_FOLDER = "src/test/resources/folderOnlyFolder/flatDuplicateTree";
 	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/folderOnlyFolder";
-	private static final DuplicateLengthFinderCallback FAILING_DLF_CALLBACK = new DuplicateLengthFinderCallback() {
-		@Override
-		public void enteredNewFolder(File file) {
-			fail();
-		}
-
-		@Override
-		public void unreadableFolder(File folder) {
-			fail();
-		}
-
-		@Override
-		public void addGroupedElement(Long size, File file) {
-			fail();
-		}
-	};
-
-	@Before
-	public void setUp() {
-
-	}
-
-	@After
-	public void tearDown() {
-
-	}
+	private static final DuplicateLengthFinderCallback FAILING_DLF_CALLBACK = new FailingDuplicateLengthFinderCallback();
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noArgumentFolder() {
@@ -119,7 +92,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		assumeTrue(System.getProperty("os.name").contains("Linux"));
 		File folder = new File("/root");
 		List<File> unreadables = new ArrayList<>();
-		DuplicateLengthFinder.getResult(folder, new DuplicateLengthFinderCallback() {
+		DuplicateLengthFinder.getResult(folder, new FailingDuplicateLengthFinderCallback() {
 			
 			@Override
 			public void unreadableFolder(File folder) {
@@ -128,11 +101,6 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 			
 			@Override
 			public void enteredNewFolder(File folder) {
-			}
-			
-			@Override
-			public void addGroupedElement(Long size, File file) {
-				fail();				
 			}
 		});
 		
@@ -174,20 +142,15 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 		List<String> foldersEntered = new ArrayList<String>();
 		Cluster<Long, File> result = new Cluster<>();
-		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
+		DuplicateLengthFinderCallback callback = new FailingDuplicateLengthFinderCallback() {
 
 			@Override
 			public void enteredNewFolder(File folder) {
 				try {
 					foldersEntered.add(folder.getCanonicalPath());
 				} catch (IOException e) {
-					fail();
+					fail(e.getLocalizedMessage());
 				}
-			}
-
-			@Override
-			public void unreadableFolder(File folder) {
-				fail();
 			}
 
 			@Override

@@ -3,7 +3,6 @@ package de.b0n.dir.processor;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -20,23 +19,7 @@ public class DuplicateContentFinderTest {
 	private static final String PATH_FILE_1 = "src/test/resources/Test1.txt";
 	private static final String PATH_FILE_2 = "src/test/resources/noDuplicates/Test1.txt";
 
-	private static DuplicateContentFinderCallback FAILING_DCF_CALLBACK = new DuplicateContentFinderCallback() {
-
-		@Override
-		public void uniqueFiles(Queue<File> uniqueFiles) {
-			fail();
-		}
-
-		@Override
-		public void failedFiles(Queue<File> failedFiles) {
-			fail();
-		}
-
-		@Override
-		public void duplicateGroup(Queue<File> queue) {
-			fail();
-		}
-	};
+	private static DuplicateContentFinderCallback FAILING_DCF_CALLBACK = new FailingDuplicateContentFinderCallback();
 
 	@Before
 	public void setUp() {
@@ -67,9 +50,9 @@ public class DuplicateContentFinderTest {
 	@Test
 	public void scanEmptyInputWithoutCallback() {
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
-		final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input);
+		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
-		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
+		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden: " + output.size(), output.isEmpty());
 	}
 
 	@Test
@@ -83,7 +66,7 @@ public class DuplicateContentFinderTest {
 		final File file = new File(PATH_FILE_1);
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		input.add(file);
-		final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input);
+		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden", output.isEmpty());
 	}
@@ -95,36 +78,26 @@ public class DuplicateContentFinderTest {
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		input.add(file1);
 		input.add(file2);
-		final Queue<Queue<File>> output = DuplicateContentFinder.getResult(input);
+		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 1, output.size());
 		assertEquals("Es muss ein Ergebnis mit zwei Dubletten zurück gegeben werden", 2, output.peek().size());
 		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
-				output.peek().peek().getAbsolutePath().endsWith("Test1.txt"));
+				output.peek().get(0).getAbsolutePath().endsWith("Test1.txt"));
 	}
 
 	@Test
 	public void scanDuplicateInputWithCallback() {
-		final List<Queue<File>> duplicateList = new ArrayList<Queue<File>>();
+		final List<List<File>> duplicateList = new ArrayList<>();
 		final File file1 = new File(PATH_FILE_1);
 		final File file2 = new File(PATH_FILE_2);
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		input.add(file1);
 		input.add(file2);
-		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
+		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
 
 			@Override
-			public void uniqueFiles(Queue<File> uniqueFiles) {
-				fail();
-			}
-
-			@Override
-			public void failedFiles(Queue<File> uniqueFiles) {
-				fail();
-			}
-
-			@Override
-			public void duplicateGroup(Queue<File> duplicateFiles) {
+			public void duplicateGroup(List<File> duplicateFiles) {
 				duplicateList.add(duplicateFiles);
 			}
 		};
@@ -134,7 +107,7 @@ public class DuplicateContentFinderTest {
 		assertEquals(1, duplicateList.size());
 		assertEquals(2, duplicateList.get(0).size());
 		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
-				duplicateList.get(0).peek().getAbsolutePath().endsWith("Test1.txt"));
+				duplicateList.get(0).get(0).getAbsolutePath().endsWith("Test1.txt"));
 		assertTrue(duplicateList.get(0).contains(file1));
 		assertTrue(duplicateList.get(0).contains(file2));
 	}
