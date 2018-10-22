@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
@@ -51,14 +52,22 @@ public class DupFinderConsole {
 		Map<Long, List<File>> cluster = DuplicateLengthFinder.getResult(directory);
 		
 		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
-		cluster.values().parallelStream().peek(files -> DuplicateContentFinder.getResult(files)).forEach(queue -> printFiles(queue));
+		cluster.values().parallelStream().map(files -> DuplicateContentFinder.getResult(files)).forEach(queue -> printQueues(queue));
 		System.out.println("Program end: " + timeInstance.format(new Date()));
+	}
+    
+	private static void printQueues(Queue<List<File>> queues) {
+		for (Collection<File> files : queues) {
+			printFiles(files);
+			System.out.println();
+		}
 	}
     
 	private static void printFiles(Collection<File> files) {
 		for (File file : files) {
 			printFile(file);
 		}
+		System.out.println();
 	}
 
 	private static void printFile(File file) {

@@ -61,7 +61,7 @@ public class DuplicateContentFinder implements Runnable {
 			List<FileReader> duplicateFiles = sortedFiles.remove(FileReader.FINISHED);
 			if (duplicateFiles != null) {
 				callback.duplicateGroup(
-						duplicateFiles.parallelStream().map(fileReaderToFile).collect(Collectors.toList()));
+						duplicateFiles.stream().map(fileReaderToFile).collect(Collectors.toList()));
 				duplicateFiles = null;
 
 			}
