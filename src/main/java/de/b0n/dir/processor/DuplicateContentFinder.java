@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Sucht von gegeben Dateigruppen die inhaltlichen Duplikate.
@@ -18,9 +19,12 @@ public class DuplicateContentFinder implements Runnable {
 
 	private static final Function<FileReader, Integer> fileReaderToInt = fileReader -> fileReader.read();
 	private static final Function<FileReader, File> fileReaderToFile = fileReader -> fileReader.clear();
-	private static final Function<Entry<Integer, List<FileReader>>, Integer> entryToKey = entry -> entry.getKey();
-	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = entry -> entry.getValue();
-	private static final Predicate<Entry<Integer, List<FileReader>>> hasSingleItemInEntry = entry -> entry.getValue().size() < 2;
+	private static final Function<Collection<FileReader>, Stream<FileReader>> collection = collection -> collection
+			.parallelStream();
+	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = entry -> entry
+			.getValue();
+	private static final Predicate<Entry<Integer, List<FileReader>>> hasSingleItemInEntry = entry -> entry.getValue()
+			.size() < 2;
 
 	private Collection<FileReader> currentCandidates;
 
@@ -49,16 +53,15 @@ public class DuplicateContentFinder implements Runnable {
 			}
 
 			// Unique Files
-			List<Entry<Integer, List<FileReader>>> uniqueEntries = sortedFiles.entrySet().parallelStream().filter(hasSingleItemInEntry).collect(Collectors.toList());
-			uniqueEntries.parallelStream().map(entryToKey).forEach(key -> sortedFiles.remove(key));
-			uniqueEntries.parallelStream().map(entryToValue).flatMap(list -> list.parallelStream()).map(fileReaderToFile).forEach(file -> callback.uniqueFile(file));
-			uniqueEntries = null;
+			sortedFiles.entrySet().parallelStream().filter(hasSingleItemInEntry)
+					.peek(entry -> sortedFiles.remove(entry.getKey())).map(entryToValue).flatMap(collection)
+					.map(fileReaderToFile).forEach(file -> callback.uniqueFile(file));
 
 			// Duplicate Files
 			List<FileReader> duplicateFiles = sortedFiles.remove(FileReader.FINISHED);
 			if (duplicateFiles != null) {
-				callback.duplicateGroup(duplicateFiles.parallelStream().map(fileReaderToFile)
-						.collect(Collectors.toList()));
+				callback.duplicateGroup(
+						duplicateFiles.parallelStream().map(fileReaderToFile).collect(Collectors.toList()));
 				duplicateFiles = null;
 
 			}
@@ -81,7 +84,7 @@ public class DuplicateContentFinder implements Runnable {
 	 *            sollen
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public static Queue<List<File>> getResult(final Queue<File> input) {
+	public static Queue<List<File>> getResult(final Collection<File> input) {
 		ConcurrentLinkedQueue<List<File>> result = new ConcurrentLinkedQueue<>();
 		DuplicateContentFinderCallback callback = new DuplicateContentFinderCallback() {
 
@@ -107,7 +110,7 @@ public class DuplicateContentFinder implements Runnable {
 	 *            Callback, um über die Ergebnisse der Dublettensuche informiert zu
 	 *            werden
 	 */
-	public static void getResult(final Queue<File> input, final DuplicateContentFinderCallback callback) {
+	public static void getResult(final Collection<File> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {
 			throw new IllegalArgumentException("input may not be null.");
 		}

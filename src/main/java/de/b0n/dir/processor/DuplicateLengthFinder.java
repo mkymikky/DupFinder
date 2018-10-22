@@ -1,9 +1,12 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -60,19 +63,26 @@ public class DuplicateLengthFinder implements Runnable {
 	 * @return Liefert ein Cluster nach Dateigröße strukturierten Queues zurück, in
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
-	public static Cluster<Long, File> getResult(final File folder) {
-		Cluster<Long, File> cluster = new Cluster<>();
+	public static Map<Long, List<File>> getResult(final File folder) {
+		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
 
 			@Override
 			public void addGroupedElement(Long size, File file) {
-				cluster.addGroupedElement(size, file);
+				synchronized (this) {
+					List<File> group = result.get(size);
+					if (group == null) {
+						group = new ArrayList<File>();
+						result.put(size, group);
+					}
+					group.add(file);
+				}
 			}
 		};
 
 		getResult(folder, callback);
 
-		return cluster;
+		return result;
 	}
 
 	/**

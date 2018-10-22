@@ -9,13 +9,19 @@ import static org.junit.Assume.assumeTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Predicate;
 
 import org.junit.Test;
 
 public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
+	
+	private static final Predicate<Entry<Long, List<File>>> hasSingleItemInEntry = entry -> entry.getValue()
+			.size() < 2;
 
 	private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -58,7 +64,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanFlatFolder() {
 		final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
 		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
@@ -68,7 +74,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanFolderOnlyFolder() {
 		final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
 		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
@@ -79,7 +85,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	public void scanEmptyFolder() {
 		final File folder = new File(PATH_EMPTY_FOLDER);
 		if (folder.mkdir()) {
-			final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+			final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 			assertNotNull(result);
 			assertTrue(result.values().isEmpty());
 			folder.delete();
@@ -112,7 +118,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanNoDuplicates() {
 		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
 		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
 		assertEquals("In der gefundenen Gruppe darf nur ein Element sein", 1, result.values().iterator().next().size());
@@ -121,7 +127,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanDuplicates() {
 		final File folder = new File(PATH_SAME_SIZE_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
 		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
 		assertEquals("In der gefundenen Gruppe dürfen nur zwei Element sein", 2, result.values().iterator().next().size());
@@ -130,9 +136,9 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanDuplicatesInTree() {
 		final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		Iterator<Queue<File>> elementsIterator = result.values().iterator();
+		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(1, result.values().size());
 		assertEquals(2, elementsIterator.next().size());
 	}
@@ -141,7 +147,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	public void scanDuplicatesInBiggerTreeWithCallback() {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 		List<String> foldersEntered = new ArrayList<String>();
-		Cluster<Long, File> result = new Cluster<>();
+		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new FailingDuplicateLengthFinderCallback() {
 
 			@Override
@@ -155,15 +161,22 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 
 			@Override
 			public void addGroupedElement(Long size, File file) {
-				result.addGroupedElement(size, file);
+				synchronized (this) {
+					List<File> group = result.get(size);
+					if (group == null) {
+						group = new ArrayList<File>();
+						result.put(size, group);
+					}
+					group.add(file);
+				}
 			}
 		};
 
 		DuplicateLengthFinder.getResult(folder, callback);
-		result.removeUniques();
+		result.entrySet().parallelStream().filter(hasSingleItemInEntry).forEach(entry -> result.remove(entry.getKey()));
 
 		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
-		Iterator<Queue<File>> elementsIterator = result.values().iterator();
+		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
 		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 6, elementsIterator.next().size());
 		String enteredFolders = "";
@@ -184,10 +197,10 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanDuplicatesInBiggerTreeWithFolder() {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		final Cluster<Long, File> result = DuplicateLengthFinder.getResult(folder);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
 		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
-		Iterator<Queue<File>> elementsIterator = result.values().iterator();
+		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
 		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 6, elementsIterator.next().size());
 	}

@@ -5,8 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Kapselt ein File und stellt darauf eine read()-Operation zur Verfügung. Dient
@@ -34,14 +34,8 @@ public class FileReader {
 	 *            In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
-	public static Queue<FileReader> pack(Collection<File> files) {
-		Queue<FileReader> fileStreams = new ConcurrentLinkedQueue<FileReader>();
-		files.forEach(file ->
-		{
-			fileStreams.add(new FileReader(file));
-		}
-		);
-		return fileStreams;
+	public static List<FileReader> pack(Collection<File> files) {
+		return files.parallelStream().map(file -> new FileReader(file)).collect(Collectors.toList());
 	}
 
 	/**
