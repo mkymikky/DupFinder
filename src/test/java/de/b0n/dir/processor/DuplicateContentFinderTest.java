@@ -16,8 +16,10 @@ import org.junit.Test;
 
 public class DuplicateContentFinderTest {
 
-	private static final String PATH_FILE_1 = "src/test/resources/Test1.txt";
-	private static final String PATH_FILE_2 = "src/test/resources/noDuplicates/Test1.txt";
+	private static final String PATH_FILE_1A = "src/test/resources/Test1.txt";
+	private static final String PATH_FILE_1B = "src/test/resources/noDuplicates/Test1.txt";
+	private static final String PATH_FILE_2A = "src/test/resources/Test2.txt";
+	private static final String PATH_FILE_2B = "src/test/resources/noDuplicates/Test2.txt";
 
 	private static DuplicateContentFinderCallback FAILING_DCF_CALLBACK = new FailingDuplicateContentFinderCallback();
 
@@ -48,7 +50,32 @@ public class DuplicateContentFinderTest {
 	}
 
 	@Test
-	public void scanEmptyInputWithoutCallback() {
+	public void scanFailingInputWithCallback() {
+		List<File> failfiles = new ArrayList<>();
+		final File file = new File(PATH_FILE_1A) {
+			private static final long serialVersionUID = 1L;
+
+			public String getPath() {
+				throw new IllegalStateException();
+			}
+		};
+		
+		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
+
+			@Override
+			public void failedFile(File failedFile) {
+				failfiles.add(failedFile);
+			}
+		};
+		
+		final List<File> input = new ArrayList<>();
+		input.add(file);
+		DuplicateContentFinder.getResult(input, callback);
+		assertEquals(1, failfiles.size());
+	}
+
+	@Test
+	public void scanEmptyInput() {
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
@@ -63,8 +90,8 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanSingleInput() {
-		final File file = new File(PATH_FILE_1);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final File file = new File(PATH_FILE_1A);
+		final List<File> input = new ArrayList<>();
 		input.add(file);
 		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
@@ -72,9 +99,9 @@ public class DuplicateContentFinderTest {
 	}
 
 	@Test
-	public void scanDuplicateInput() {
-		final File file1 = new File(PATH_FILE_1);
-		final File file2 = new File(PATH_FILE_2);
+	public void scanSingleDuplicateInput() {
+		final File file1 = new File(PATH_FILE_1A);
+		final File file2 = new File(PATH_FILE_1B);
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		input.add(file1);
 		input.add(file2);
@@ -87,10 +114,34 @@ public class DuplicateContentFinderTest {
 	}
 
 	@Test
+	public void scanDoubleDuplicateInput() {
+		final File file1 = new File(PATH_FILE_1A);
+		final File file2 = new File(PATH_FILE_1B);
+		final File file3 = new File(PATH_FILE_2A);
+		final File file4 = new File(PATH_FILE_2B);
+		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		input.add(file1);
+		input.add(file3);
+		input.add(file4);
+		input.add(file2);
+		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
+		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
+		assertEquals("Es müssen zwei Ergebnisse zurück gegeben werden", 2, output.size());
+		List<File> group1 = output.remove();
+		List<File> group2 = output.remove();
+		assertEquals("Es müssen zwei Ergebnisse mit zwei Dubletten zurück gegeben werden", 2, group1.size());
+		assertEquals("Es müssen zwei Ergebnisse mit zwei Dubletten zurück gegeben werden", 2, group2.size());
+		assertTrue("Es muss ein Ergebnis Test1.txt zurück gegeben werden",
+				group1.get(0).getAbsolutePath().endsWith("Test1.txt") || group2.get(0).getAbsolutePath().endsWith("Test1.txt"));
+		assertTrue("Es muss ein Ergebnis Test2.txt zurück gegeben werden",
+				group1.get(0).getAbsolutePath().endsWith("Test2.txt") || group2.get(0).getAbsolutePath().endsWith("Test2.txt"));
+	}
+
+	@Test
 	public void scanDuplicateInputWithCallback() {
 		final List<List<File>> duplicateList = new ArrayList<>();
-		final File file1 = new File(PATH_FILE_1);
-		final File file2 = new File(PATH_FILE_2);
+		final File file1 = new File(PATH_FILE_1A);
+		final File file2 = new File(PATH_FILE_1B);
 		final Queue<File> input = new ConcurrentLinkedQueue<File>();
 		input.add(file1);
 		input.add(file2);

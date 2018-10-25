@@ -92,7 +92,7 @@ public class FileReader {
 				stream = new BufferedInputStream(new FileInputStream(file));
 			}
 			data = stream.read();
-		} catch (IOException e) {
+		} catch (IOException | IllegalStateException e) {
 			close();
 		}
 		return data;
