@@ -31,10 +31,6 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 		printStream = new PrintStream(byteArrayOutputStream);
 	}
 
-	@After
-	public void tearDown() throws IOException {
-	}
-
 	@Test
 	public void testNoArgument() {
 		System.setErr(printStream);
@@ -71,10 +67,5 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
        	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
        	assertListContainsLineEndingWith(lines, "Test1.txt");
        	assertListContainsLineEndingWith(lines, "Test2.txt");
-	}
-
-	@Test
-	public void testConstructor() {
-		assertNotNull(new DupFinderConsole());
 	}
 }

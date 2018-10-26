@@ -21,4 +21,4 @@ public class FailingDuplicateContentFinderCallback implements DuplicateContentFi
 	public void duplicateGroup(List<File> queue) {
 		fail();
 	}
-};
+}

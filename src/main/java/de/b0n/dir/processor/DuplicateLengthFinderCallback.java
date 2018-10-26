@@ -14,19 +14,19 @@ public interface DuplicateLengthFinderCallback {
 	 * Wird aufgerufen, sobald ein neues zu durchsuchendes Verzeichnis erkannt wurde
 	 * @param folder File zum zu durchsuchenden Verzeichnis
 	 */
-	default void enteredNewFolder(File folder) {};
+	default void enteredNewFolder(File folder) {}
 
 	/**
 	 * Wird aufgerufen, wenn ein Verzeichnis nicht gelesen werden kann.
 	 * @param folder Nicht lesbares Verzeichnis
 	 */
-	default void unreadableFolder(File folder) {};
+	default void unreadableFolder(File folder) {}
 
 	/**
 	 * Wird aufgerufen, wenn die Dateilänge einer Datei ermittelt wurde
 	 * @param size Länge der Datei
 	 * @param file Datei mit der ermittelten Länge
 	 */
-	default void addGroupedElement(Long size, File file) {};
+	default void addGroupedElement(Long size, File file) {}
 
 }

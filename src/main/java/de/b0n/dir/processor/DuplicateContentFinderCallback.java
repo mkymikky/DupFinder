@@ -7,8 +7,8 @@ public interface DuplicateContentFinderCallback {
 
 	default void failedFile(File failedFile) {}
 
-	default void uniqueFile(File uniqueFile) {};
+	default void uniqueFile(File uniqueFile) {}
 
-	default void duplicateGroup(List<File> duplicateFiles) {};
+	default void duplicateGroup(List<File> duplicateFiles) {}
 
 }

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  * zum effizienten Teilen der Files bei unterschieden in den Streams und
  * gleichzeitigem Halten des Stream-Zustands. Die Datei wird lazy geöffnet.
  */
-public class FileReader {
+class FileReader {
 	/**
 	 * Datei wurde zuende gelesen
 	 */
@@ -35,14 +35,14 @@ public class FileReader {
 	 * @return Queue mit FileStreams
 	 */
 	public static List<FileReader> pack(Collection<File> files) {
-		return files.parallelStream().map(file -> new FileReader(file)).collect(Collectors.toList());
+		return files.parallelStream().map(FileReader::new).collect(Collectors.toList());
 	}
 
 	/**
 	 * Erzeugt das Objekt. Der Stream zum Auslesen wird lazy erst bei Bedarf
 	 * geöffnet.
 	 * 
-	 * @param file
+	 * @param file File, dessen Stream bearbeitet werden soll
 	 */
 	public FileReader(File file) {
 		if (file == null) {
@@ -82,7 +82,6 @@ public class FileReader {
 	/**
 	 * Liefert ein Byte aus dem geöffneten Dateistream zur Inhaltsanalyse.
 	 * 
-	 * @see #InputStream.read()
 	 * @return Wert gemäß InputStream.read()
 	 */
 	public int read() {

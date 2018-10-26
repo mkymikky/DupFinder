@@ -21,17 +21,7 @@ public class DuplicateContentFinderTest {
 	private static final String PATH_FILE_2A = "src/test/resources/Test2.txt";
 	private static final String PATH_FILE_2B = "src/test/resources/noDuplicates/Test2.txt";
 
-	private static DuplicateContentFinderCallback FAILING_DCF_CALLBACK = new FailingDuplicateContentFinderCallback();
-
-	@Before
-	public void setUp() {
-
-	}
-
-	@After
-	public void tearDown() {
-
-	}
+	private static final DuplicateContentFinderCallback FAILING_DCF_CALLBACK = new FailingDuplicateContentFinderCallback();
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noArguments() {

@@ -162,11 +162,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 			@Override
 			public void addGroupedElement(Long size, File file) {
 				synchronized (this) {
-					List<File> group = result.get(size);
-					if (group == null) {
-						group = new ArrayList<File>();
-						result.put(size, group);
-					}
+					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<File>());
 					group.add(file);
 				}
 			}
@@ -179,9 +175,9 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
 		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 6, elementsIterator.next().size());
-		String enteredFolders = "";
+		StringBuilder enteredFolders = new StringBuilder();
 		for (String string : foldersEntered) {
-			enteredFolders += string + "\n";
+			enteredFolders.append(string).append("\n");
 		}
 		assertEquals("Following Folders have been entered:\n" + enteredFolders + "6 should have been entered", 6,
 				foldersEntered.size());

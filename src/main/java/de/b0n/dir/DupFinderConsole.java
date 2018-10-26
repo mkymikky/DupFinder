@@ -17,7 +17,7 @@ import de.b0n.dir.processor.DuplicateLengthFinder;
  * @author Claus
  *
  */
-public class DupFinderConsole {
+class DupFinderConsole {
 
 	private static final String ERROR = "FEHLER: ";
 	private static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
@@ -52,7 +52,7 @@ public class DupFinderConsole {
 		Map<Long, List<File>> cluster = DuplicateLengthFinder.getResult(directory);
 		
 		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
-		cluster.values().parallelStream().map(files -> DuplicateContentFinder.getResult(files)).forEach(queue -> printQueues(queue));
+		cluster.values().parallelStream().map(DuplicateContentFinder::getResult).forEach(DupFinderConsole::printQueues);
 		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
     

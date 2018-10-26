@@ -17,12 +17,10 @@ import java.util.stream.Stream;
  */
 public class DuplicateContentFinder implements Runnable {
 
-	private static final Function<FileReader, Integer> fileReaderToInt = fileReader -> fileReader.read();
-	private static final Function<FileReader, File> fileReaderToFile = fileReader -> fileReader.clear();
-	private static final Function<Collection<FileReader>, Stream<FileReader>> collection = collection -> collection
-			.parallelStream();
-	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = entry -> entry
-			.getValue();
+	private static final Function<FileReader, Integer> fileReaderToInt = FileReader::read;
+	private static final Function<FileReader, File> fileReaderToFile = FileReader::clear;
+	private static final Function<Collection<FileReader>, Stream<FileReader>> collection = Collection::parallelStream;
+	private static final Function<Entry<Integer, List<FileReader>>, List<FileReader>> entryToValue = Entry::getValue;
 	private static final Predicate<Entry<Integer, List<FileReader>>> hasSingleItemInEntry = entry -> entry.getValue()
 			.size() < 2;
 
@@ -48,21 +46,19 @@ public class DuplicateContentFinder implements Runnable {
 			// Failed Files
 			List<FileReader> failingFiles = sortedFiles.remove(FileReader.FAILING);
 			if (failingFiles != null) {
-				failingFiles.parallelStream().map(fileReaderToFile).forEach(file -> callback.failedFile(file));
-				failingFiles = null;
+				failingFiles.parallelStream().map(fileReaderToFile).forEach(callback::failedFile);
 			}
 
 			// Unique Files
 			sortedFiles.entrySet().parallelStream().filter(hasSingleItemInEntry)
 					.peek(entry -> sortedFiles.remove(entry.getKey())).map(entryToValue).flatMap(collection)
-					.map(fileReaderToFile).forEach(file -> callback.uniqueFile(file));
+					.map(fileReaderToFile).forEach(callback::uniqueFile);
 
 			// Duplicate Files
 			List<FileReader> duplicateFiles = sortedFiles.remove(FileReader.FINISHED);
 			if (duplicateFiles != null) {
 				callback.duplicateGroup(
 						duplicateFiles.stream().map(fileReaderToFile).collect(Collectors.toList()));
-				duplicateFiles = null;
 
 			}
 

@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class FileStreamErrorTest {
-	File file = new File("");
+	private final File file = new File("");
 
 	@Mock
 	private BufferedInputStream stream;
