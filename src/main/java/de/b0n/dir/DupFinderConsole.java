@@ -1,10 +1,14 @@
 package de.b0n.dir;
 
 import java.io.File;
-import java.util.LinkedList;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 
-import de.b0n.dir.processor.Cluster;
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
 
@@ -13,7 +17,7 @@ import de.b0n.dir.processor.DuplicateLengthFinder;
  * @author Claus
  *
  */
-public class DupFinderConsole {
+class DupFinderConsole {
 
 	private static final String ERROR = "FEHLER: ";
 	private static final String USAGE = "\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird";
@@ -43,26 +47,27 @@ public class DupFinderConsole {
 			return;
 		}
 
-		Cluster<Long, File> cluster = DuplicateLengthFinder.getResult(directory);
+		DateFormat timeInstance = SimpleDateFormat.getTimeInstance();
+		System.out.println("Begin finding lengths: " + timeInstance.format(new Date()));
+		Map<Long, List<File>> cluster = DuplicateLengthFinder.getResult(directory);
 		
-		Queue<Queue<File>> duplicateContentFilesQueues = new LinkedList<>();
-		for (Queue<File> fileQueue : cluster.values()) {
-			duplicateContentFilesQueues.addAll(DuplicateContentFinder.getResult(fileQueue));
-		}
-		printQueues(duplicateContentFilesQueues);
+		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
+		cluster.values().parallelStream().map(DuplicateContentFinder::getResult).forEach(DupFinderConsole::printQueues);
+		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
     
-	private static void printQueues(Queue<Queue<File>> queues) {
-		for (Queue<File> files : queues) {
+	private static void printQueues(Queue<List<File>> queues) {
+		for (Collection<File> files : queues) {
 			printFiles(files);
 			System.out.println();
 		}
 	}
-
-	private static void printFiles(Queue<File> files) {
+    
+	private static void printFiles(Collection<File> files) {
 		for (File file : files) {
 			printFile(file);
 		}
+		System.out.println();
 	}
 
 	private static void printFile(File file) {

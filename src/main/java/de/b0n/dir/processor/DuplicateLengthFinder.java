@@ -2,126 +2,93 @@ package de.b0n.dir.processor;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Future;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Sucht in einem gegebenen Verzeichnis und dessen Unterverzeichnissen nach
  * Dateien und sortiert diese nach Dateigröße.
  */
-public class DuplicateLengthFinder extends AbstractProcessor implements Runnable {
+public class DuplicateLengthFinder implements Runnable {
 
 	private final File folder;
 	private final DuplicateLengthFinderCallback callback;
-	private final List<Future<?>> futures = new ArrayList<Future<?>>();
+	private final Executor executor;
 
-	private DuplicateLengthFinder(final File folder, DuplicateLengthFinderCallback callback) {
-		String exceptionMessage = checkFolder(folder);
-		if (exceptionMessage != null) {
-			callback.unreadableFolder(folder);
-			throw new IllegalArgumentException(exceptionMessage + folder.getAbsolutePath());
-		}
-
+	private DuplicateLengthFinder(final File folder, DuplicateLengthFinderCallback callback, Executor executor) {
 		this.folder = folder;
 		this.callback = callback;
+		this.executor = executor;
 	}
 
 	/**
 	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
-	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt.
-	 * Wartet die Unterverzeichnis-Suchen ab und merged deren
-	 * Ergebnisdateien. Liefert das Gesamtergebnis zurück.
+	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt. Wartet die
+	 * Unterverzeichnis-Suchen ab und merged deren Ergebnisdateien. Liefert das
+	 * Gesamtergebnis zurück.
 	 */
 	@Override
 	public void run() {
 		callback.enteredNewFolder(folder);
 
-		for (File file : readContent(folder)) {
-			if (file.isDirectory()) {
-				futures.add(submit(new DuplicateLengthFinder(file, callback)));
-			}
-
-			if (file.isFile()) {
-				callback.addGroupedElement(Long.valueOf(file.length()), file);
-			}
-		}
-
-		consolidate(futures);
-	}
-
-	private String checkFolder(final File folder) {
-		String exceptionMessage = null;
-		if (folder.list() == null) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> kann nicht aufgelistet werden: ";
-		}
-		if (!folder.canRead()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist nicht lesbar: ";
-		}
-		if (!folder.isDirectory()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis: ";
-		}
-		if (!folder.exists()) {
-			exceptionMessage = "FEHLER: Parameter <Verzeichnis> existiert nicht: ";
-		}
-		return exceptionMessage;
+		List<File> folderContent = readContent(folder);
+		folderContent.parallelStream().filter(File::isDirectory)
+				.forEach(file -> executor.submit(new DuplicateLengthFinder(file, callback, executor)));
+		folderContent.parallelStream().filter(File::isFile)
+				.forEach(file -> callback.addGroupedElement(Long.valueOf(file.length()), file));
 	}
 
 	private List<File> readContent(File folder) {
-		List<File> contents = new ArrayList<>();
-		for (String fileName : folder.list()) {
-			contents.add(new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName));
+		String[] folderContents = folder.list();
+		if (folderContents == null) {
+			callback.unreadableFolder(folder);
+			return Collections.emptyList();
 		}
-		return contents;
+
+		return Arrays.stream(folderContents).parallel()
+				.map(fileName -> new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName))
+				.collect(Collectors.toList());
 	}
 
 	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe. Verwendet einen Executors.newWorkStealingPool() als
-	 * ThreadPool.
+	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher
+	 * Größe.
 	 * 
 	 * @param folder
 	 *            Zu durchsuchendes Verzeichnis
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
+	 * @return Liefert ein Cluster nach Dateigröße strukturierten Queues zurück, in
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
-	public static Cluster<Long, File> getResult(final File folder) {
-		Cluster<Long, File> cluster = new Cluster<>();
+	public static Map<Long, List<File>> getResult(final File folder) {
+		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
-			
-			@Override
-			public void unreadableFolder(File folder) {
-				return;
-			}
-			
-			@Override
-			public void enteredNewFolder(File folder) {
-				return;
-			}
 
 			@Override
 			public void addGroupedElement(Long size, File file) {
-				cluster.addGroupedElement(size, file);
+				synchronized (this) {
+					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<File>());
+					group.add(file);
+				}
 			}
 		};
-		
+
 		getResult(folder, callback);
-		
-		return cluster;
+
+		return result;
 	}
 
 	/**
-	 * Einstiegstmethode zum Durchsuchen eines Verzeichnisses nach Dateien
-	 * gleicher Größe.
+	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher
+	 * Größe.
 	 * 
 	 * @param folder
 	 *            Zu durchsuchendes Verzeichnis
-	 * @param threadPool
-	 *            Pool zur Ausführung der Suchen
 	 * @param callback
 	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
-	 *            (darf null sein)
-	 * @return Liefert eine Map nach Dateigröße strukturierten Queues zurück, in
-	 *         denen die gefundenen Dateien abgelegt sind
 	 */
 	public static void getResult(final File folder, DuplicateLengthFinderCallback callback) {
 		if (folder == null) {
@@ -130,7 +97,15 @@ public class DuplicateLengthFinder extends AbstractProcessor implements Runnable
 		if (callback == null) {
 			throw new IllegalArgumentException("callback may not be null.");
 		}
+		if (!folder.exists()) {
+			throw new IllegalArgumentException("folder must exist.");
+		}
+		if (!folder.isDirectory()) {
+			throw new IllegalArgumentException("folder must be a valid folder.");
+		}
 
-		consolidate(submit(new DuplicateLengthFinder(folder, callback)));
+		Executor executor = new Executor();
+		executor.submit(new DuplicateLengthFinder(folder, callback, executor));
+		executor.consolidate();
 	}
 }

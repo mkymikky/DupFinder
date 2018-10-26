@@ -1,7 +1,6 @@
 package de.b0n.dir;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -13,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -29,10 +27,6 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	public void setUp() throws IOException {
 		byteArrayOutputStream = new ByteArrayOutputStream();
 		printStream = new PrintStream(byteArrayOutputStream);
-	}
-
-	@After
-	public void tearDown() throws IOException {
 	}
 
 	@Test
@@ -71,10 +65,5 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
        	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
        	assertListContainsLineEndingWith(lines, "Test1.txt");
        	assertListContainsLineEndingWith(lines, "Test2.txt");
-	}
-
-	@Test
-	public void testConstructor() {
-		assertNotNull(new DupFinderConsole());
 	}
 }

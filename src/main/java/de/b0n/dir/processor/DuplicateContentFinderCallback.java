@@ -1,14 +1,14 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.util.Queue;
+import java.util.List;
 
 public interface DuplicateContentFinderCallback {
 
-	void failedFiles(int size);
+	default void failedFile(File failedFile) {}
 
-	void duplicateGroup(Queue<File> duplicateGroup);
+	default void uniqueFile(File uniqueFile) {}
 
-	void uniqueFiles(int uniqueFileCount);
+	default void duplicateGroup(List<File> duplicateFiles) {}
 
 }
