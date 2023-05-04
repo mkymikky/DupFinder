@@ -20,7 +20,7 @@ public class FileStreamErrorTest {
 	private BufferedInputStream stream;
 
 	@InjectMocks
-	private FileReader fileStream = new FileReader(file);
+	private final FileReader fileStream = new FileReader(file);
 	
 	@Test
 	public void validRead() throws IOException {

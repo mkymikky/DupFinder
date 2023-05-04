@@ -146,7 +146,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanDuplicatesInBiggerTreeWithCallback() {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		List<String> foldersEntered = new ArrayList<String>();
+		List<String> foldersEntered = new ArrayList<>();
 		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new FailingDuplicateLengthFinderCallback() {
 
@@ -162,7 +162,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 			@Override
 			public void addGroupedElement(Long size, File file) {
 				synchronized (this) {
-					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<File>());
+					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<>());
 					group.add(file);
 				}
 			}

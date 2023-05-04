@@ -6,7 +6,6 @@ import static org.junit.Assume.assumeTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -24,7 +23,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	private ByteArrayOutputStream byteArrayOutputStream;
 
 	@Before
-	public void setUp() throws IOException {
+	public void setUp() {
 		byteArrayOutputStream = new ByteArrayOutputStream();
 		printStream = new PrintStream(byteArrayOutputStream);
 	}
@@ -35,7 +34,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 		DupFinderConsole.main(new String[] {});
 		assertEquals(
 				"FEHLER: Parameter <Verzeichnis> fehlt.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
+				byteArrayOutputStream.toString(StandardCharsets.UTF_8).trim());
 	}
 
 	@Test
@@ -44,7 +43,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 		DupFinderConsole.main(new String[] {PATH_FILE});
 		assertEquals(
 				"FEHLER: Parameter <Verzeichnis> ist kein Verzeichnis.\r\n Benutzung: DupFinder <Verzeichnis>\r\n<Verzeichnis> = Verzeichnis in dem rekursiv nach Duplikaten gesucht wird",
-				new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).trim());
+				byteArrayOutputStream.toString(StandardCharsets.UTF_8).trim());
 	}
 
 	@Test
@@ -53,7 +52,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
         final File folder = new File(PATH_EMPTY_FOLDER);
         assumeTrue(folder.mkdir());
     	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
-    	assertTrue(new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8).isEmpty());
+    	assertTrue(byteArrayOutputStream.toString(StandardCharsets.UTF_8).isEmpty());
     	folder.delete();
 	}
 
@@ -61,7 +60,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	public void testDuplicates() {
 		System.setOut(printStream);
        	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	String output = new String(byteArrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
+       	String output = byteArrayOutputStream.toString(StandardCharsets.UTF_8);
        	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
        	assertListContainsLineEndingWith(lines, "Test1.txt");
        	assertListContainsLineEndingWith(lines, "Test2.txt");

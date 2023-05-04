@@ -5,13 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 
 public class DuplicateContentFinderTest {
@@ -30,7 +29,7 @@ public class DuplicateContentFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void noArgumentCallback() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		DuplicateContentFinder.getResult(input, null);
 	}
 
@@ -43,6 +42,7 @@ public class DuplicateContentFinderTest {
 	public void scanFailingInputWithCallback() {
 		List<File> failfiles = new ArrayList<>();
 		final File file = new File(PATH_FILE_1A) {
+			@Serial
 			private static final long serialVersionUID = 1L;
 
 			public String getPath() {
@@ -66,7 +66,7 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanEmptyInput() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
 		assertNotNull("Es muss ein Ergebnis zurück gegeben werden", output);
 		assertTrue("Es muss ein leeres Ergebnis zurück gegeben werden: " + output.size(), output.isEmpty());
@@ -74,7 +74,7 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanEmptyInputWithCallback() {
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		DuplicateContentFinder.getResult(input, FAILING_DCF_CALLBACK);
 	}
 
@@ -92,7 +92,7 @@ public class DuplicateContentFinderTest {
 	public void scanSingleDuplicateInput() {
 		final File file1 = new File(PATH_FILE_1A);
 		final File file2 = new File(PATH_FILE_1B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		input.add(file1);
 		input.add(file2);
 		final Queue<List<File>> output = DuplicateContentFinder.getResult(input);
@@ -109,7 +109,7 @@ public class DuplicateContentFinderTest {
 		final File file2 = new File(PATH_FILE_1B);
 		final File file3 = new File(PATH_FILE_2A);
 		final File file4 = new File(PATH_FILE_2B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		input.add(file1);
 		input.add(file3);
 		input.add(file4);
@@ -132,7 +132,7 @@ public class DuplicateContentFinderTest {
 		final List<List<File>> duplicateList = new ArrayList<>();
 		final File file1 = new File(PATH_FILE_1A);
 		final File file2 = new File(PATH_FILE_1B);
-		final Queue<File> input = new ConcurrentLinkedQueue<File>();
+		final Queue<File> input = new ConcurrentLinkedQueue<>();
 		input.add(file1);
 		input.add(file2);
 		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
