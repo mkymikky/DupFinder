@@ -39,7 +39,7 @@ public class DuplicateLengthFinder implements Runnable {
 		folderContent.parallelStream().filter(File::isDirectory)
 				.forEach(file -> executor.submit(new DuplicateLengthFinder(file, callback, executor)));
 		folderContent.parallelStream().filter(File::isFile)
-				.forEach(file -> callback.addGroupedElement(Long.valueOf(file.length()), file));
+				.forEach(file -> callback.addGroupedElement(file.length(), file));
 	}
 
 	private List<File> readContent(File folder) {
@@ -70,7 +70,7 @@ public class DuplicateLengthFinder implements Runnable {
 			@Override
 			public void addGroupedElement(Long size, File file) {
 				synchronized (this) {
-					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<File>());
+					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<>());
 					group.add(file);
 				}
 			}

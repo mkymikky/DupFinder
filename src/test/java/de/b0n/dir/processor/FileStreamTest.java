@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import static org.junit.Assert.*;
 
 /**
@@ -60,7 +59,7 @@ public class FileStreamTest {
 	}
 
 	@Test
-	public void getValidStreamWithValidFile() throws IOException {
+	public void getValidStreamWithValidFile() {
 		final FileReader fileStream = new FileReader(this.textFile);
 		assertNotNull(fileStream);
 
@@ -71,7 +70,7 @@ public class FileStreamTest {
 	}
 
 	@Test
-	public void getValidFileWithValidFile() throws IOException {
+	public void getValidFileWithValidFile() {
 		final FileReader stream = new FileReader(textFile);
 		assertNotNull(stream);
 		assertSame(textFile, stream.clear());
