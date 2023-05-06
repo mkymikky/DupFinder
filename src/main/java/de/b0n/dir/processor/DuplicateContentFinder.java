@@ -1,11 +1,8 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -63,11 +60,15 @@ public class DuplicateContentFinder implements Runnable {
 			}
 
 			// Prepare first group for next iteration
-			sortedFiles.values().stream().limit(1).forEach(list -> currentCandidates = list);
+			Iterator<Integer> sortedFilesKeysIterator = sortedFiles.keySet().iterator();
+			if (sortedFilesKeysIterator.hasNext()) {
+				currentCandidates = sortedFiles.get(sortedFilesKeysIterator.next());
+			}
 
 			// Outsource other groups
-			sortedFiles.values().stream().skip(1).forEach(outsourcedCandidates -> executor
-					.submit(new DuplicateContentFinder(outsourcedCandidates, callback, executor)));
+			while (sortedFilesKeysIterator.hasNext()) {
+				executor.submit(new DuplicateContentFinder(sortedFiles.get(sortedFilesKeysIterator.next()), callback, executor));
+			}
 		}
 	}
 
