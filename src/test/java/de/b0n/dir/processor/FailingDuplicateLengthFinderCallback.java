@@ -1,6 +1,6 @@
 package de.b0n.dir.processor;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.File;
 

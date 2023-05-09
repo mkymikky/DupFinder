@@ -1,10 +1,8 @@
 package de.b0n.dir.processor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeTrue;
+import static java.util.stream.Collectors.toMap;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,12 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	
-	private static final Predicate<Entry<Long, List<File>>> hasSingleItemInEntry = entry -> entry.getValue()
-			.size() < 2;
+	private static final Predicate<Entry<Long, List<File>>> hasMultipleItemsInEntry = entry -> entry.getValue()
+			.size() > 2;
 
 	private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -34,31 +32,66 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/folderOnlyFolder";
 	private static final DuplicateLengthFinderCallback FAILING_DLF_CALLBACK = new FailingDuplicateLengthFinderCallback();
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgumentFolder() {
-		DuplicateLengthFinder.getResult(null);
+		try {
+			DuplicateLengthFinder.getResult(null);
+			fail("Missing Parameter must be notified");
+		} catch (IllegalArgumentException e){
+			// Expected Exception
+		} catch (Exception e) {
+			fail("Exception should not occur " + e.getLocalizedMessage());
+		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgumentCallback() {
-		DuplicateLengthFinder.getResult(new File("."), null);
+		try {
+			DuplicateLengthFinder.getResult(new File("."), null);
+			fail("Missing Parameter must be notified");
+		} catch (IllegalArgumentException e){
+			// Expected Exception
+		} catch (Exception e) {
+			fail("Exception should not occur " + e.getLocalizedMessage());
+		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgumentFolderButCallback() {
-		DuplicateLengthFinder.getResult(null, FAILING_DLF_CALLBACK);
+		try {
+			DuplicateLengthFinder.getResult(null, FAILING_DLF_CALLBACK);
+			fail("Missing Parameter must be notified");
+		} catch (IllegalArgumentException e){
+			// Expected Exception
+		} catch (Exception e) {
+			fail("Exception should not occur " + e.getLocalizedMessage());
+		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void scanInvalidFolder() {
-		final File folder = new File(PATH_INVALID_FOLDER);
-		DuplicateLengthFinder.getResult(folder);
+		try {
+			final File folder = new File(PATH_INVALID_FOLDER);
+			DuplicateLengthFinder.getResult(folder);
+			fail("Missing Parameter must be notified");
+		} catch (IllegalArgumentException e){
+			// Expected Exception
+		} catch (Exception e) {
+			fail("Exception should not occur " + e.getLocalizedMessage());
+		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void scanFile() {
-		final File folder = new File(PATH_FILE);
-		DuplicateLengthFinder.getResult(folder);
+		try {
+			final File folder = new File(PATH_FILE);
+			DuplicateLengthFinder.getResult(folder);
+			fail("Missing Parameter must be notified");
+		} catch (IllegalArgumentException e){
+			// Expected Exception
+		} catch (Exception e) {
+			fail("Exception should not occur " + e.getLocalizedMessage());
+		}
 	}
 
 	@Test
@@ -66,9 +99,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
-		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
-				result.values().iterator().next().size());
+		assertEquals(1, result.values().size());
+		assertEquals(2, result.values().iterator().next().size());
 	}
 
 	@Test
@@ -76,9 +108,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 1, result.values().size());
-		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2,
-				result.values().iterator().next().size());
+		assertEquals(1, result.values().size());
+		assertEquals(2, result.values().iterator().next().size());
 	}
 
 	@Test
@@ -120,8 +151,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
-		assertEquals("In der gefundenen Gruppe darf nur ein Element sein", 1, result.values().iterator().next().size());
+		assertEquals(1, result.values().size());
+		assertEquals(1, result.values().iterator().next().size());
 	}
 	
 	@Test
@@ -129,8 +160,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_SAME_SIZE_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("Es darf nur eine Gruppe gefunden werden", 1, result.values().size());
-		assertEquals("In der gefundenen Gruppe dürfen nur zwei Element sein", 2, result.values().iterator().next().size());
+		assertEquals(1, result.values().size());
+		assertEquals(2, result.values().iterator().next().size());
 	}
 
 	@Test
@@ -169,18 +200,13 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		};
 
 		DuplicateLengthFinder.getResult(folder, callback);
-		result.entrySet().parallelStream().filter(hasSingleItemInEntry).forEach(entry -> result.remove(entry.getKey()));
+		Map<Long, List<File>> filteredResult = result.entrySet().parallelStream().filter(hasMultipleItemsInEntry).collect(toMap(Entry::getKey, Entry::getValue));
 
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
-		Iterator<List<File>> elementsIterator = result.values().iterator();
-		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
-		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 6, elementsIterator.next().size());
-		StringBuilder enteredFolders = new StringBuilder();
-		for (String string : foldersEntered) {
-			enteredFolders.append(string).append("\n");
-		}
-		assertEquals("Following Folders have been entered:\n" + enteredFolders + "6 should have been entered", 6,
-				foldersEntered.size());
+		assertEquals(2, filteredResult.values().size());
+		Iterator<List<File>> elementsIterator = filteredResult.values().iterator();
+		assertEquals(2, elementsIterator.next().size());
+		assertEquals(6, elementsIterator.next().size());
+		assertEquals(6, foldersEntered.size());
 		assertListContainsLineEndingWith(foldersEntered, "resources");
 		assertListContainsLineEndingWith(foldersEntered, "duplicateTree");
 		assertListContainsLineEndingWith(foldersEntered, "subfolder");
@@ -195,9 +221,9 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals("falsche Anzahl an Dateien gleicher Größe bestimmt", 2, result.values().size());
+		assertEquals(2, result.values().size());
 		Iterator<List<File>> elementsIterator = result.values().iterator();
-		assertEquals("falsche Anzahl von 26 Byte-Datei Vorkommen bestimmt", 2, elementsIterator.next().size());
-		assertEquals("falsche Anzahl von 91 Byte-Datei Vorkommen bestimmt", 6, elementsIterator.next().size());
+		assertEquals(2, elementsIterator.next().size());
+		assertEquals(6, elementsIterator.next().size());
 	}
 }

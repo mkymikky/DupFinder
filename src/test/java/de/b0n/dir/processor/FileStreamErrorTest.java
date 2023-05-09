@@ -1,26 +1,25 @@
 package de.b0n.dir.processor;
 
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 
-@RunWith(MockitoJUnitRunner.class)
 public class FileStreamErrorTest {
 	private final File file = new File("");
 
-	@Mock
-	private BufferedInputStream stream;
+	private final BufferedInputStream stream = mock(BufferedInputStream.class);
 
-	@InjectMocks
-	private final FileReader fileStream = new FileReader(file);
+	private FileReader fileStream = null;
+
+	@BeforeEach
+	void setUp() {
+		fileStream = new FileReader(file, stream);
+	}
 	
 	@Test
 	public void validRead() throws IOException {
