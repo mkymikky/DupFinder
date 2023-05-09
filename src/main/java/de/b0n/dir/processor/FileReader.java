@@ -52,7 +52,25 @@ class FileReader {
 	}
 
 	/**
-	 * Schließt den Stream im dem Adapter und liefert das File.
+	 * Erzeugt das Objekt. Der Stream zum Auslesen wird lazy erst bei Bedarf
+	 * geöffnet. Die Methode steht nur Tests zur Verfügung
+	 *
+	 * @param file File, dessen Stream bearbeitet werden soll
+	 */
+	protected FileReader(File file, BufferedInputStream stream) {
+		if (file == null) {
+			throw new IllegalArgumentException("File may not be null.");
+		}
+
+		if (stream == null) {
+			throw new IllegalArgumentException("Stream may not be null.");
+		}
+		this.file = file;
+		this.stream = stream;
+	}
+
+	/**
+	 * Schließt den Stream im Adapter und liefert das File.
 	 * 
 	 * @return zum Stream-Initialisieren genutzes File
 	 */

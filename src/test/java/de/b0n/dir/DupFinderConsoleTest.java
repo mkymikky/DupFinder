@@ -1,8 +1,8 @@
 package de.b0n.dir;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,8 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
@@ -22,7 +22,7 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	private PrintStream printStream;
 	private ByteArrayOutputStream byteArrayOutputStream;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		byteArrayOutputStream = new ByteArrayOutputStream();
 		printStream = new PrintStream(byteArrayOutputStream);

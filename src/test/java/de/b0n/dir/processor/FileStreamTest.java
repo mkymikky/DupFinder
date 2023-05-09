@@ -1,11 +1,11 @@
 package de.b0n.dir.processor;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Created by huluvu424242 on 06.01.17.
@@ -18,14 +18,14 @@ public class FileStreamTest {
 	private File textFile = null;
 	private FileReader fileStream = null;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		textFile = new File(PATH_VALID_FILE);
 		assertTrue(textFile.exists());
 
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		textFile = null;
 		if (fileStream != null) {
@@ -74,7 +74,7 @@ public class FileStreamTest {
 		final FileReader stream = new FileReader(textFile);
 		assertNotNull(stream);
 		assertSame(textFile, stream.clear());
-		assertEquals("wrong file size", 91, stream.clear().length());
+		assertEquals(91, stream.clear().length());
 	}
 
 	@Test
