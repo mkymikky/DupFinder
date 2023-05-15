@@ -12,15 +12,15 @@ public interface DuplicateLengthFinderCallback {
 
 	/**
 	 * Wird aufgerufen, sobald ein neues zu durchsuchendes Verzeichnis erkannt wurde
-	 * @param folder File zum zu durchsuchenden Verzeichnis
+	 * @param directory File zum zu durchsuchenden Verzeichnis
 	 */
-	default void enteredNewFolder(File folder) {}
+	default void enteredNewDirectory(File directory) {}
 
 	/**
 	 * Wird aufgerufen, wenn ein Verzeichnis nicht gelesen werden kann.
-	 * @param folder Nicht lesbares Verzeichnis
+	 * @param directory Nicht lesbares Verzeichnis
 	 */
-	default void unreadableFolder(File folder) {}
+	default void unreadableDirectory(File directory) {}
 
 	/**
 	 * Wird aufgerufen, wenn die Dateilänge einer Datei ermittelt wurde
