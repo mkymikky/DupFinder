@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -121,11 +120,11 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		System.err.println("OS calls itself: " + System.getProperty("os.name"));
 		assumeTrue(System.getProperty("os.name").contains("Linux"));
 		File directory = new File("/root");
-		List<File> unreadables = new ArrayList<>();
+		List<String> unreadables = new ArrayList<>();
 		DuplicateLengthFinder.getResult(directory, new FailingDuplicateLengthFinderCallback() {
 			
 			@Override
-			public void unreadableDirectory(File directory) {
+			public void unreadableDirectory(String directory) {
 				unreadables.add(directory);
 			}
 			
@@ -135,7 +134,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		});
 		
 		assertEquals(1, unreadables.size());
-		assertEquals(directory.getAbsolutePath(), unreadables.get(0).getAbsolutePath());
+		assertEquals(directory.getAbsolutePath(), unreadables.get(0));
 
 	}
 
@@ -170,41 +169,33 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanDuplicatesInBiggerTreeWithCallback() {
 		final File directory = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		List<String> directorysEntered = new ArrayList<>();
-		Map<Long, List<File>> result = new HashMap<>();
+		List<String> directoriesEntered = new ArrayList<>();
 		DuplicateLengthFinderCallback callback = new FailingDuplicateLengthFinderCallback() {
 
 			@Override
 			public void enteredNewDirectory(File directory) {
 				try {
-					directorysEntered.add(directory.getCanonicalPath());
+					directoriesEntered.add(directory.getCanonicalPath());
 				} catch (IOException e) {
 					fail(e.getLocalizedMessage());
 				}
 			}
-
-			@Override
-			public void addGroupedElement(Long size, File file) {
-				synchronized (this) {
-					result.computeIfAbsent(size, list -> new ArrayList<>()).add(file);
-				}
-			}
 		};
 
-		DuplicateLengthFinder.getResult(directory, callback);
+		Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory, callback);
 
 		assertEquals(3, result.values().size());
 		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(2, elementsIterator.next().size());
 		assertEquals(6, elementsIterator.next().size());
 		assertEquals(1, elementsIterator.next().size());
-		assertEquals(6, directorysEntered.size());
-		assertListContainsLineEndingWith(directorysEntered, "resources");
-		assertListContainsLineEndingWith(directorysEntered, "duplicateTree");
-		assertListContainsLineEndingWith(directorysEntered, "subdirectory");
-		assertListContainsLineEndingWith(directorysEntered, "directoryOnlyDirectory");
-		assertListContainsLineEndingWith(directorysEntered, "flatDuplicateTree");
-		assertListContainsLineEndingWith(directorysEntered, "noDuplicates");
+		assertEquals(6, directoriesEntered.size());
+		assertListContainsLineEndingWith(directoriesEntered, "resources");
+		assertListContainsLineEndingWith(directoriesEntered, "duplicateTree");
+		assertListContainsLineEndingWith(directoriesEntered, "subdirectory");
+		assertListContainsLineEndingWith(directoriesEntered, "directoryOnlyDirectory");
+		assertListContainsLineEndingWith(directoriesEntered, "flatDuplicateTree");
+		assertListContainsLineEndingWith(directoriesEntered, "noDuplicates");
 
 	}
 

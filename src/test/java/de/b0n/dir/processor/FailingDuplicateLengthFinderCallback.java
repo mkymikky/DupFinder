@@ -12,12 +12,7 @@ public class FailingDuplicateLengthFinderCallback implements DuplicateLengthFind
 	}
 
 	@Override
-	public void unreadableDirectory(File directory) {
-		fail();
-	}
-
-	@Override
-	public void addGroupedElement(Long size, File file) {
+	public void unreadableDirectory(String directory) {
 		fail();
 	}
 }
