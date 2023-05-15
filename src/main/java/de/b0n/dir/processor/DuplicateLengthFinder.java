@@ -1,57 +1,46 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import static java.util.stream.Collectors.toList;
+import java.util.*;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.*;
 
 /**
  * Sucht in einem gegebenen Verzeichnis und dessen Unterverzeichnissen nach
  * Dateien und sortiert diese nach Dateigröße.
  */
-public class DuplicateLengthFinder implements Runnable {
-
-	private final File directory;
-	private final DuplicateLengthFinderCallback callback;
-	private final Executor executor;
-
-	private DuplicateLengthFinder(final File directory, DuplicateLengthFinderCallback callback, Executor executor) {
-		this.directory = directory;
-		this.callback = callback;
-		this.executor = executor;
-	}
-
+public class DuplicateLengthFinder {
 	/**
 	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
 	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt. Wartet die
 	 * Unterverzeichnis-Suchen ab und merged deren Ergebnisdateien. Liefert das
 	 * Gesamtergebnis zurück.
 	 */
-	@Override
-	public void run() {
+	public static Stream<File> handleDirectory(File directory, DuplicateLengthFinderCallback callback) {
 		callback.enteredNewDirectory(directory);
-
-		List<File> directoryContent = readContent(directory);
-		directoryContent.parallelStream().filter(File::isDirectory)
-				.forEach(file -> executor.submit(new DuplicateLengthFinder(file, callback, executor)));
-		directoryContent.parallelStream().filter(File::isFile)
-				.forEach(file -> callback.addGroupedElement(file.length(), file));
+		try {
+			return readContent(directory).flatMap(file -> handleFile(file, callback));
+		} catch (IllegalStateException ise) {
+			callback.unreadableDirectory(ise.getMessage());
+		}
+		return Stream.empty();
 	}
 
-	private List<File> readContent(File directory) {
-		String[] directoryContents = directory.list();
-		if (directoryContents == null) {
-			callback.unreadableDirectory(directory);
-			return Collections.emptyList();
+	private static Stream<File> handleFile(File file, DuplicateLengthFinderCallback callback) {
+		if (file.isDirectory()) {
+			return handleDirectory(file, callback);
+		} else if (file.isFile()) {
+			return Stream.of(file);
 		}
+		return Stream.empty();
+	}
 
-		return Arrays.stream(directoryContents).parallel()
-				.map(fileName -> new File(directory.getAbsolutePath() + System.getProperty("file.separator") + fileName))
-				.collect(toList());
+	private static Stream<File> readContent(File directory) {
+		return Arrays.stream(Optional.ofNullable(directory.list())
+				.orElseThrow(() -> new IllegalStateException(directory.getAbsolutePath())))
+				.parallel()
+				.map(fileName -> new File(directory.getAbsolutePath() + System.getProperty("file.separator") + fileName));
 	}
 
 	/**
@@ -64,21 +53,7 @@ public class DuplicateLengthFinder implements Runnable {
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
 	public static Map<Long, List<File>> getResult(final File directory) {
-		Map<Long, List<File>> result = new HashMap<>();
-		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
-
-			@Override
-			public void addGroupedElement(Long size, File file) {
-				synchronized (this) {
-					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<>());
-					group.add(file);
-				}
-			}
-		};
-
-		getResult(directory, callback);
-
-		return result;
+		return getResult(directory, new DuplicateLengthFinderCallback() {});
 	}
 
 	/**
@@ -90,7 +65,7 @@ public class DuplicateLengthFinder implements Runnable {
 	 * @param callback
 	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
 	 */
-	public static void getResult(final File directory, DuplicateLengthFinderCallback callback) {
+	public static Map<Long, List<File>> getResult(final File directory, DuplicateLengthFinderCallback callback) {
 		if (directory == null) {
 			throw new IllegalArgumentException("directory may not be null.");
 		}
@@ -104,8 +79,6 @@ public class DuplicateLengthFinder implements Runnable {
 			throw new IllegalArgumentException("directory must be a valid directory.");
 		}
 
-		Executor executor = new Executor();
-		executor.submit(new DuplicateLengthFinder(directory, callback, executor));
-		executor.consolidate();
+		return handleDirectory(directory, callback).collect(groupingBy(File::length, toList()));
 	}
 }

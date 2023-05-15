@@ -20,13 +20,6 @@ public interface DuplicateLengthFinderCallback {
 	 * Wird aufgerufen, wenn ein Verzeichnis nicht gelesen werden kann.
 	 * @param directory Nicht lesbares Verzeichnis
 	 */
-	default void unreadableDirectory(File directory) {}
-
-	/**
-	 * Wird aufgerufen, wenn die Dateilänge einer Datei ermittelt wurde
-	 * @param size Länge der Datei
-	 * @param file Datei mit der ermittelten Länge
-	 */
-	default void addGroupedElement(Long size, File file) {}
+	default void unreadableDirectory(String directory) {}
 
 }
