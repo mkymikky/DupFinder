@@ -1,6 +1,5 @@
 package de.b0n.dir.processor;
 
-import static java.util.stream.Collectors.toMap;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
@@ -11,16 +10,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
 public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
-	
-	private static final Predicate<Entry<Long, List<File>>> hasMultipleItemsInEntry = entry -> entry.getValue()
-			.size() > 2;
-
 	private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_INVALID_FOLDER = "src/test/resourcesInvalid/";
@@ -193,19 +186,18 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 			@Override
 			public void addGroupedElement(Long size, File file) {
 				synchronized (this) {
-					List<File> group = result.computeIfAbsent(size, k -> new ArrayList<>());
-					group.add(file);
+					result.computeIfAbsent(size, list -> new ArrayList<>()).add(file);
 				}
 			}
 		};
 
 		DuplicateLengthFinder.getResult(folder, callback);
-		Map<Long, List<File>> filteredResult = result.entrySet().parallelStream().filter(hasMultipleItemsInEntry).collect(toMap(Entry::getKey, Entry::getValue));
 
-		assertEquals(2, filteredResult.values().size());
-		Iterator<List<File>> elementsIterator = filteredResult.values().iterator();
+		assertEquals(3, result.values().size());
+		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(2, elementsIterator.next().size());
 		assertEquals(6, elementsIterator.next().size());
+		assertEquals(1, elementsIterator.next().size());
 		assertEquals(6, foldersEntered.size());
 		assertListContainsLineEndingWith(foldersEntered, "resources");
 		assertListContainsLineEndingWith(foldersEntered, "duplicateTree");
@@ -221,9 +213,10 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
 		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
 		assertNotNull(result);
-		assertEquals(2, result.values().size());
+		assertEquals(3, result.values().size());
 		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(2, elementsIterator.next().size());
 		assertEquals(6, elementsIterator.next().size());
+		assertEquals(1, elementsIterator.next().size());
 	}
 }

@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Sucht in einem gegebenen Verzeichnis und dessen Unterverzeichnissen nach
@@ -51,7 +51,7 @@ public class DuplicateLengthFinder implements Runnable {
 
 		return Arrays.stream(folderContents).parallel()
 				.map(fileName -> new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName))
-				.collect(Collectors.toList());
+				.collect(toList());
 	}
 
 	/**
