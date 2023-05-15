@@ -17,16 +17,16 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_INVALID_FOLDER = "src/test/resourcesInvalid/";
-	private static final String PATH_NO_SAME_SIZE_FOLDER = "src/test/resources/duplicateTree/subfolder";
+	private static final String PATH_NO_SAME_SIZE_FOLDER = "src/test/resources/duplicateTree/subdirectory";
 	private static final String PATH_SAME_SIZE_FOLDER = "src/test/resources/noDuplicates";
-	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyFolder";
+	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyDirectory";
 	private static final String PATH_PLENTY_SAME_SIZE_FOLDER = "src/test/resources/";
-	private static final String PATH_SAME_SIZE_IN_FLAT_FOLDER = "src/test/resources/folderOnlyFolder/flatDuplicateTree";
-	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/folderOnlyFolder";
+	private static final String PATH_SAME_SIZE_IN_FLAT_FOLDER = "src/test/resources/directoryOnlyDirectory/flatDuplicateTree";
+	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/directoryOnlyDirectory";
 	private static final DuplicateLengthFinderCallback FAILING_DLF_CALLBACK = new FailingDuplicateLengthFinderCallback();
 
 	@Test
-	public void noArgumentFolder() {
+	public void noArgumentDirectory() {
 		try {
 			DuplicateLengthFinder.getResult(null);
 			fail("Missing Parameter must be notified");
@@ -50,7 +50,7 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	}
 
 	@Test
-	public void noArgumentFolderButCallback() {
+	public void noArgumentDirectoryButCallback() {
 		try {
 			DuplicateLengthFinder.getResult(null, FAILING_DLF_CALLBACK);
 			fail("Missing Parameter must be notified");
@@ -62,10 +62,10 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	}
 
 	@Test
-	public void scanInvalidFolder() {
+	public void scanInvalidDirectory() {
 		try {
-			final File folder = new File(PATH_INVALID_FOLDER);
-			DuplicateLengthFinder.getResult(folder);
+			final File directory = new File(PATH_INVALID_FOLDER);
+			DuplicateLengthFinder.getResult(directory);
 			fail("Missing Parameter must be notified");
 		} catch (IllegalArgumentException e){
 			// Expected Exception
@@ -77,8 +77,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	@Test
 	public void scanFile() {
 		try {
-			final File folder = new File(PATH_FILE);
-			DuplicateLengthFinder.getResult(folder);
+			final File directory = new File(PATH_FILE);
+			DuplicateLengthFinder.getResult(directory);
 			fail("Missing Parameter must be notified");
 		} catch (IllegalArgumentException e){
 			// Expected Exception
@@ -88,61 +88,61 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	}
 
 	@Test
-	public void scanFlatFolder() {
-		final File folder = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+	public void scanFlatDirectory() {
+		final File directory = new File(PATH_SAME_SIZE_IN_FLAT_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		assertEquals(1, result.values().size());
 		assertEquals(2, result.values().iterator().next().size());
 	}
 
 	@Test
-	public void scanFolderOnlyFolder() {
-		final File folder = new File(PATH_FOLDER_ONLY_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+	public void scanDirectoryOnlyDirectory() {
+		final File directory = new File(PATH_FOLDER_ONLY_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		assertEquals(1, result.values().size());
 		assertEquals(2, result.values().iterator().next().size());
 	}
 
 	@Test
-	public void scanEmptyFolder() {
-		final File folder = new File(PATH_EMPTY_FOLDER);
-		if (folder.mkdir()) {
-			final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+	public void scanEmptyDirectory() {
+		final File directory = new File(PATH_EMPTY_FOLDER);
+		if (directory.mkdir()) {
+			final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 			assertNotNull(result);
 			assertTrue(result.values().isEmpty());
-			folder.delete();
+			directory.delete();
 		}
 	}
 
 	@Test
-	public void scanUnreadableFolder() {
+	public void scanUnreadableDirectory() {
 		System.err.println("OS calls itself: " + System.getProperty("os.name"));
 		assumeTrue(System.getProperty("os.name").contains("Linux"));
-		File folder = new File("/root");
+		File directory = new File("/root");
 		List<File> unreadables = new ArrayList<>();
-		DuplicateLengthFinder.getResult(folder, new FailingDuplicateLengthFinderCallback() {
+		DuplicateLengthFinder.getResult(directory, new FailingDuplicateLengthFinderCallback() {
 			
 			@Override
-			public void unreadableFolder(File folder) {
-				unreadables.add(folder);
+			public void unreadableDirectory(File directory) {
+				unreadables.add(directory);
 			}
 			
 			@Override
-			public void enteredNewFolder(File folder) {
+			public void enteredNewDirectory(File directory) {
 			}
 		});
 		
 		assertEquals(1, unreadables.size());
-		assertEquals(folder.getAbsolutePath(), unreadables.get(0).getAbsolutePath());
+		assertEquals(directory.getAbsolutePath(), unreadables.get(0).getAbsolutePath());
 
 	}
 
 	@Test
 	public void scanNoDuplicates() {
-		final File folder = new File(PATH_NO_SAME_SIZE_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+		final File directory = new File(PATH_NO_SAME_SIZE_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		assertEquals(1, result.values().size());
 		assertEquals(1, result.values().iterator().next().size());
@@ -150,8 +150,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	
 	@Test
 	public void scanDuplicates() {
-		final File folder = new File(PATH_SAME_SIZE_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+		final File directory = new File(PATH_SAME_SIZE_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		assertEquals(1, result.values().size());
 		assertEquals(2, result.values().iterator().next().size());
@@ -159,8 +159,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 
 	@Test
 	public void scanDuplicatesInTree() {
-		final File folder = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+		final File directory = new File(PATH_SAME_SIZE_FILES_IN_TREE_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(1, result.values().size());
@@ -169,15 +169,15 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 
 	@Test
 	public void scanDuplicatesInBiggerTreeWithCallback() {
-		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		List<String> foldersEntered = new ArrayList<>();
+		final File directory = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
+		List<String> directorysEntered = new ArrayList<>();
 		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new FailingDuplicateLengthFinderCallback() {
 
 			@Override
-			public void enteredNewFolder(File folder) {
+			public void enteredNewDirectory(File directory) {
 				try {
-					foldersEntered.add(folder.getCanonicalPath());
+					directorysEntered.add(directory.getCanonicalPath());
 				} catch (IOException e) {
 					fail(e.getLocalizedMessage());
 				}
@@ -191,27 +191,27 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 			}
 		};
 
-		DuplicateLengthFinder.getResult(folder, callback);
+		DuplicateLengthFinder.getResult(directory, callback);
 
 		assertEquals(3, result.values().size());
 		Iterator<List<File>> elementsIterator = result.values().iterator();
 		assertEquals(2, elementsIterator.next().size());
 		assertEquals(6, elementsIterator.next().size());
 		assertEquals(1, elementsIterator.next().size());
-		assertEquals(6, foldersEntered.size());
-		assertListContainsLineEndingWith(foldersEntered, "resources");
-		assertListContainsLineEndingWith(foldersEntered, "duplicateTree");
-		assertListContainsLineEndingWith(foldersEntered, "subfolder");
-		assertListContainsLineEndingWith(foldersEntered, "folderOnlyFolder");
-		assertListContainsLineEndingWith(foldersEntered, "flatDuplicateTree");
-		assertListContainsLineEndingWith(foldersEntered, "noDuplicates");
+		assertEquals(6, directorysEntered.size());
+		assertListContainsLineEndingWith(directorysEntered, "resources");
+		assertListContainsLineEndingWith(directorysEntered, "duplicateTree");
+		assertListContainsLineEndingWith(directorysEntered, "subdirectory");
+		assertListContainsLineEndingWith(directorysEntered, "directoryOnlyDirectory");
+		assertListContainsLineEndingWith(directorysEntered, "flatDuplicateTree");
+		assertListContainsLineEndingWith(directorysEntered, "noDuplicates");
 
 	}
 
 	@Test
-	public void scanDuplicatesInBiggerTreeWithFolder() {
-		final File folder = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
-		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(folder);
+	public void scanDuplicatesInBiggerTreeWithDirectory() {
+		final File directory = new File(PATH_PLENTY_SAME_SIZE_FOLDER);
+		final Map<Long, List<File>> result = DuplicateLengthFinder.getResult(directory);
 		assertNotNull(result);
 		assertEquals(3, result.values().size());
 		Iterator<List<File>> elementsIterator = result.values().iterator();

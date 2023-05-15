@@ -7,12 +7,12 @@ import java.io.File;
 public class FailingDuplicateLengthFinderCallback implements DuplicateLengthFinderCallback {
 
 	@Override
-	public void enteredNewFolder(File file) {
+	public void enteredNewDirectory(File file) {
 		fail();
 	}
 
 	@Override
-	public void unreadableFolder(File folder) {
+	public void unreadableDirectory(File directory) {
 		fail();
 	}
 

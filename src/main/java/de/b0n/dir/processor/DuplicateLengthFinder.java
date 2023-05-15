@@ -15,12 +15,12 @@ import static java.util.stream.Collectors.toList;
  */
 public class DuplicateLengthFinder implements Runnable {
 
-	private final File folder;
+	private final File directory;
 	private final DuplicateLengthFinderCallback callback;
 	private final Executor executor;
 
-	private DuplicateLengthFinder(final File folder, DuplicateLengthFinderCallback callback, Executor executor) {
-		this.folder = folder;
+	private DuplicateLengthFinder(final File directory, DuplicateLengthFinderCallback callback, Executor executor) {
+		this.directory = directory;
 		this.callback = callback;
 		this.executor = executor;
 	}
@@ -33,24 +33,24 @@ public class DuplicateLengthFinder implements Runnable {
 	 */
 	@Override
 	public void run() {
-		callback.enteredNewFolder(folder);
+		callback.enteredNewDirectory(directory);
 
-		List<File> folderContent = readContent(folder);
-		folderContent.parallelStream().filter(File::isDirectory)
+		List<File> directoryContent = readContent(directory);
+		directoryContent.parallelStream().filter(File::isDirectory)
 				.forEach(file -> executor.submit(new DuplicateLengthFinder(file, callback, executor)));
-		folderContent.parallelStream().filter(File::isFile)
+		directoryContent.parallelStream().filter(File::isFile)
 				.forEach(file -> callback.addGroupedElement(file.length(), file));
 	}
 
-	private List<File> readContent(File folder) {
-		String[] folderContents = folder.list();
-		if (folderContents == null) {
-			callback.unreadableFolder(folder);
+	private List<File> readContent(File directory) {
+		String[] directoryContents = directory.list();
+		if (directoryContents == null) {
+			callback.unreadableDirectory(directory);
 			return Collections.emptyList();
 		}
 
-		return Arrays.stream(folderContents).parallel()
-				.map(fileName -> new File(folder.getAbsolutePath() + System.getProperty("file.separator") + fileName))
+		return Arrays.stream(directoryContents).parallel()
+				.map(fileName -> new File(directory.getAbsolutePath() + System.getProperty("file.separator") + fileName))
 				.collect(toList());
 	}
 
@@ -58,12 +58,12 @@ public class DuplicateLengthFinder implements Runnable {
 	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher
 	 * Größe.
 	 * 
-	 * @param folder
+	 * @param directory
 	 *            Zu durchsuchendes Verzeichnis
 	 * @return Liefert ein Cluster nach Dateigröße strukturierten Queues zurück, in
 	 *         denen die gefundenen Dateien abgelegt sind
 	 */
-	public static Map<Long, List<File>> getResult(final File folder) {
+	public static Map<Long, List<File>> getResult(final File directory) {
 		Map<Long, List<File>> result = new HashMap<>();
 		DuplicateLengthFinderCallback callback = new DuplicateLengthFinderCallback() {
 
@@ -76,7 +76,7 @@ public class DuplicateLengthFinder implements Runnable {
 			}
 		};
 
-		getResult(folder, callback);
+		getResult(directory, callback);
 
 		return result;
 	}
@@ -85,27 +85,27 @@ public class DuplicateLengthFinder implements Runnable {
 	 * Einstiegsmethode zum Durchsuchen eines Verzeichnisses nach Dateien gleicher
 	 * Größe.
 	 * 
-	 * @param folder
+	 * @param directory
 	 *            Zu durchsuchendes Verzeichnis
 	 * @param callback
 	 *            Ruft den Callback bei jedem neu betretenen Verzeichnis auf
 	 */
-	public static void getResult(final File folder, DuplicateLengthFinderCallback callback) {
-		if (folder == null) {
-			throw new IllegalArgumentException("folder may not be null.");
+	public static void getResult(final File directory, DuplicateLengthFinderCallback callback) {
+		if (directory == null) {
+			throw new IllegalArgumentException("directory may not be null.");
 		}
 		if (callback == null) {
 			throw new IllegalArgumentException("callback may not be null.");
 		}
-		if (!folder.exists()) {
-			throw new IllegalArgumentException("folder must exist.");
+		if (!directory.exists()) {
+			throw new IllegalArgumentException("directory must exist.");
 		}
-		if (!folder.isDirectory()) {
-			throw new IllegalArgumentException("folder must be a valid folder.");
+		if (!directory.isDirectory()) {
+			throw new IllegalArgumentException("directory must be a valid directory.");
 		}
 
 		Executor executor = new Executor();
-		executor.submit(new DuplicateLengthFinder(folder, callback, executor));
+		executor.submit(new DuplicateLengthFinder(directory, callback, executor));
 		executor.consolidate();
 	}
 }
