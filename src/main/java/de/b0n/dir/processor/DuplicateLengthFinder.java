@@ -33,6 +33,7 @@ public class DuplicateLengthFinder {
 		} else if (file.isFile()) {
 			return Stream.of(file);
 		}
+		callback.unidentifiedFileObject(file.getAbsolutePath());
 		return Stream.empty();
 	}
 

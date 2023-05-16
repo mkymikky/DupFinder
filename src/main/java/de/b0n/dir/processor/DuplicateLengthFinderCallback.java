@@ -22,4 +22,9 @@ public interface DuplicateLengthFinderCallback {
 	 */
 	default void unreadableDirectory(String directory) {}
 
+	/**
+	 * Wird aufgerufen, wenn ein File im Verzeichnis weder Datei noch Verzeichnis ist
+	 * @param file Unklassifiziertes Dateiobjekt
+	 */
+	default void unidentifiedFileObject(String file) {}
 }
