@@ -6,7 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Kapselt ein File und stellt darauf eine read()-Operation zur Verfügung. Dient
@@ -28,14 +28,14 @@ class FileReader {
 
 	/**
 	 * Packt die Collection von Dateien in jeweils in einen FileStream,
-	 * zusammengefasst in einer Queue.
+	 * zusammengefasst in einer Liste.
 	 * 
 	 * @param files
 	 *            In FileStreams zu kapselnde Files
 	 * @return Queue mit FileStreams
 	 */
 	public static List<FileReader> pack(Collection<File> files) {
-		return files.parallelStream().map(FileReader::new).collect(Collectors.toList());
+		return files.parallelStream().map(FileReader::new).collect(toList());
 	}
 
 	/**
@@ -91,7 +91,7 @@ class FileReader {
 		try {
 			stream.close();
 		} catch (IOException e) {
-			throw new IllegalStateException("Could not close Stream. Nothing to do about that, resetting FileStream.");
+			throw new IllegalStateException("Could not close Stream. Nothing to do about that, clearing FileStream.");
 		} finally {
 			stream = null;
 		}
@@ -103,15 +103,14 @@ class FileReader {
 	 * @return Wert gemäß InputStream.read()
 	 */
 	public int read() {
-		int data = FAILING;
 		try {
 			if (stream == null) {
 				stream = new BufferedInputStream(new FileInputStream(file));
 			}
-			data = stream.read();
+			return stream.read();
 		} catch (IOException | IllegalStateException e) {
 			close();
+			return FAILING;
 		}
-		return data;
 	}
 }

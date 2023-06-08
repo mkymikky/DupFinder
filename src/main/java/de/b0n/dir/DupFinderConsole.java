@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 
 import de.b0n.dir.processor.DuplicateContentFinder;
 import de.b0n.dir.processor.DuplicateLengthFinder;
@@ -56,7 +55,7 @@ class DupFinderConsole {
 		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
     
-	private static void printQueues(Queue<List<File>> queues) {
+	private static void printQueues(Collection<List<File>> queues) {
 		for (Collection<File> files : queues) {
 			printFiles(files);
 			System.out.println();

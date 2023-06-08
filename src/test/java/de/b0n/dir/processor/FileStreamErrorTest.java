@@ -64,7 +64,7 @@ public class FileStreamErrorTest {
 		try {
 			fileStream.clear();
 		} catch (IllegalStateException e) {
-			assertEquals("Could not close Stream. Nothing to do about that, resetting FileStream.", e.getMessage());
+			assertEquals("Could not close Stream. Nothing to do about that, clearing FileStream.", e.getMessage());
 		}
 
 		verify(stream).close();

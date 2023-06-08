@@ -1,7 +1,6 @@
 package de.b0n.dir.processor;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Ermöglicht das Tracking des aktuellen Fortschritts auf Dateiebene.
@@ -22,11 +21,4 @@ public interface DuplicateContentFinderCallback {
 	 * @param uniqueFile File ohne Duplikat
 	 */
 	default void uniqueFile(File uniqueFile) {}
-
-	/**
-	 * Wird aufgerufen, sobald eine Gruppe gleicher Dateien erkannt wurde
-	 * @param duplicateFiles Files mit demselben Inhalt
-	 */
-	default void duplicateGroup(List<File> duplicateFiles) {}
-
 }

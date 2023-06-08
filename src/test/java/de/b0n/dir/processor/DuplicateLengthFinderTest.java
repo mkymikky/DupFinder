@@ -22,6 +22,8 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 	private static final String PATH_PLENTY_SAME_SIZE_FOLDER = "src/test/resources/";
 	private static final String PATH_SAME_SIZE_IN_FLAT_FOLDER = "src/test/resources/directoryOnlyDirectory/flatDuplicateTree";
 	private static final String PATH_FOLDER_ONLY_FOLDER = "src/test/resources/directoryOnlyDirectory";
+	private static final String PATH_UNREADABLE_WINDOWS = "C:\\SYSTEM VOLUME INFORMATION";
+	private static final String PATH_UNREADABLE_LINUX = "/root";
 	private static final DuplicateLengthFinderCallback FAILING_DLF_CALLBACK = new FailingDuplicateLengthFinderCallback();
 
 	@Test
@@ -117,9 +119,15 @@ public class DuplicateLengthFinderTest extends de.b0n.dir.Test {
 
 	@Test
 	public void scanUnreadableDirectory() {
-		System.err.println("OS calls itself: " + System.getProperty("os.name"));
-		assumeTrue(System.getProperty("os.name").contains("Linux"));
-		File directory = new File("/root");
+		File directory = null;
+		if (System.getProperty("os.name").contains("Linux")) {
+			directory = new File(PATH_UNREADABLE_LINUX);
+		} else if (System.getProperty("os.name").contains("Windows")) {
+			directory = new File(PATH_UNREADABLE_WINDOWS);
+		} else {
+			System.err.println("OS calls itself: " + System.getProperty("os.name"));
+			assumeTrue(false);
+		}
 		List<String> unreadables = new ArrayList<>();
 		DuplicateLengthFinder.getResult(directory, new FailingDuplicateLengthFinderCallback() {
 			
