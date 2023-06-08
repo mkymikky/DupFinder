@@ -2,6 +2,7 @@ package de.b0n.dir.processor;
 
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
@@ -11,37 +12,30 @@ import static java.util.stream.Collectors.*;
  * Dateien und sortiert diese nach Dateigröße.
  */
 public class DuplicateLengthFinder {
-	/**
-	 * Iteriert durch die Elemente im Verzeichnis und legt neue Suchen für
-	 * Verzeichnisse an. Dateien werden sofort der Größe nach abgelegt. Wartet die
-	 * Unterverzeichnis-Suchen ab und merged deren Ergebnisdateien. Liefert das
-	 * Gesamtergebnis zurück.
-	 */
-	public static Stream<File> handleDirectory(File directory, DuplicateLengthFinderCallback callback) {
+	private static Stream<File> handleDirectory(File directory, DuplicateLengthFinderCallback callback) {
 		callback.enteredNewDirectory(directory);
 		try {
-			return readContent(directory).flatMap(file -> handleFile(file, callback));
+			return Arrays.stream(Optional.ofNullable(directory.list())
+							.orElseThrow(() -> new IllegalStateException(directory.getAbsolutePath())))
+					.parallel()
+					.map(toFileOf(directory))
+					.flatMap(file -> {
+						if (file.isDirectory()) {
+							return handleDirectory(file, callback);
+						} else if (file.isFile()) {
+							return Stream.of(file);
+						}
+						callback.unidentifiedFileObject(file.getAbsolutePath());
+						return Stream.empty();
+					});
 		} catch (IllegalStateException ise) {
 			callback.unreadableDirectory(ise.getMessage());
 		}
 		return Stream.empty();
 	}
 
-	private static Stream<File> handleFile(File file, DuplicateLengthFinderCallback callback) {
-		if (file.isDirectory()) {
-			return handleDirectory(file, callback);
-		} else if (file.isFile()) {
-			return Stream.of(file);
-		}
-		callback.unidentifiedFileObject(file.getAbsolutePath());
-		return Stream.empty();
-	}
-
-	private static Stream<File> readContent(File directory) {
-		return Arrays.stream(Optional.ofNullable(directory.list())
-				.orElseThrow(() -> new IllegalStateException(directory.getAbsolutePath())))
-				.parallel()
-				.map(fileName -> new File(directory.getAbsolutePath() + System.getProperty("file.separator") + fileName));
+	private static Function<String, File> toFileOf(File directory) {
+		return fileName -> new File(directory.getAbsolutePath() + System.getProperty("file.separator") + fileName);
 	}
 
 	/**

@@ -26,6 +26,7 @@ class DupFinderConsole {
 
 	/**
 	 * Sucht im übergebenen Verzeichnis nach Dubletten.
+	 *
 	 * @param args Erster Parameter muss ein gültiges Verzeichnis sein
 	 */
 	public static void main(String[] args) {
@@ -33,14 +34,14 @@ class DupFinderConsole {
 			System.err.println(ERROR + NO_PARAM + USAGE);
 			return;
 		}
-		
+
 		File directory = new File(args[0] + File.separator);
-		
+
 		if (!directory.isDirectory()) {
 			System.err.println(ERROR + INVALID_DIRECTORY + USAGE);
 			return;
 		}
-		
+
 		if (!directory.canRead()) {
 			System.err.println(ERROR + UREADABLE_DIRECTORY + USAGE);
 			return;
@@ -49,27 +50,13 @@ class DupFinderConsole {
 		DateFormat timeInstance = SimpleDateFormat.getTimeInstance();
 		System.out.println("Begin finding lengths: " + timeInstance.format(new Date()));
 		Map<Long, List<File>> cluster = DuplicateLengthFinder.getResult(directory);
-		
-		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
-		cluster.values().parallelStream().map(DuplicateContentFinder::getResult).forEach(DupFinderConsole::printQueues);
-		System.out.println("Program end: " + timeInstance.format(new Date()));
-	}
-    
-	private static void printQueues(Collection<List<File>> queues) {
-		for (Collection<File> files : queues) {
-			printFiles(files);
-			System.out.println();
-		}
-	}
-    
-	private static void printFiles(Collection<File> files) {
-		for (File file : files) {
-			printFile(file);
-		}
-		System.out.println();
-	}
 
-	private static void printFile(File file) {
-		System.out.println(file.getAbsolutePath());
+		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
+		System.out.println("Duplicate size: " + cluster.values().parallelStream()
+				.map(DuplicateContentFinder::getResult)
+				.flatMap(Collection::stream)
+				.mapToLong(files -> (files.size() - 1) * files.get(0).length())
+				.sum());
+		System.out.println("Program end: " + timeInstance.format(new Date()));
 	}
 }

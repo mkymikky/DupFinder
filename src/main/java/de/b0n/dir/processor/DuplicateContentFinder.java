@@ -9,7 +9,7 @@ import static java.util.stream.Collectors.groupingByConcurrent;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Sucht von gegeben Dateigruppen die inhaltlichen Duplikate.
+ * Sucht von gegeben Dateigruppen inhaltliche Duplikate.
  */
 public class DuplicateContentFinder {
 
