@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.b0n</groupId>
 	<artifactId>DupFinder</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<url>http://b0n.de/</url>
 
 	<properties>
