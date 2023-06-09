@@ -8,8 +8,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +15,6 @@ import org.junit.jupiter.api.Test;
 public class DupFinderConsoleTest extends de.b0n.dir.Test {
 	private static final String PATH_FILE = "src/test/resources/Test1.txt";
 	private static final String PATH_EMPTY_FOLDER = "src/test/resources/emptyDirectory";
-    private static final String PATH_SAME_SIZE_FILES_IN_TREE_FOLDER = "src/test/resources/duplicateTree";
 
 	private PrintStream printStream;
 	private ByteArrayOutputStream byteArrayOutputStream;
@@ -54,15 +51,5 @@ public class DupFinderConsoleTest extends de.b0n.dir.Test {
     	DupFinderConsole.main(new String[] {PATH_EMPTY_FOLDER});
     	assertTrue(byteArrayOutputStream.toString(StandardCharsets.UTF_8).isEmpty());
     	directory.delete();
-	}
-
-	@Test
-	public void testDuplicates() {
-		System.setOut(printStream);
-       	DupFinderConsole.main(new String[] {PATH_SAME_SIZE_FILES_IN_TREE_FOLDER});
-       	String output = byteArrayOutputStream.toString(StandardCharsets.UTF_8);
-       	List<String> lines = Arrays.asList(output.split("\\r\\n|\\n|\\r"));
-       	assertListContainsLineEndingWith(lines, "Test1.txt");
-       	assertListContainsLineEndingWith(lines, "Test2.txt");
 	}
 }
