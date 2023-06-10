@@ -3,7 +3,6 @@ package de.b0n.dir;
 import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,8 +52,7 @@ class DupFinderConsole {
 
 		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
 		System.out.println("Duplicate size: " + cluster.values().parallelStream()
-				.map(DuplicateContentFinder::getResult)
-				.flatMap(Collection::stream)
+				.flatMap(DuplicateContentFinder::getResult)
 				.mapToLong(files -> (files.size() - 1) * files.get(0).length())
 				.sum());
 		System.out.println("Program end: " + timeInstance.format(new Date()));

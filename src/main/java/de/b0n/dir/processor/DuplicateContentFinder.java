@@ -6,7 +6,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingByConcurrent;
-import static java.util.stream.Collectors.toList;
 
 /**
  * Sucht von gegeben Dateigruppen inhaltliche Duplikate.
@@ -32,7 +31,7 @@ public class DuplicateContentFinder {
 								return Stream.of(
 										entry.getValue().stream()
 											.map(FileReader::clear)
-											.collect(toList()));
+											.toList());
 							} else {
 								return streamDuplicateFilesList(entry.getValue(), callback);
 							}
@@ -72,7 +71,7 @@ public class DuplicateContentFinder {
 	 *            sollen
 	 * @return Nach inhaltlichen Dubletten gruppierte File-Listen
 	 */
-	public static List<List<File>> getResult(final Collection<File> input) {
+	public static Stream<List<File>> getResult(final Collection<File> input) {
 		return getResult(input, new DuplicateContentFinderCallback() {});
 	}
 
@@ -87,7 +86,7 @@ public class DuplicateContentFinder {
 	 *            Callback, um über die Ergebnisse der Dublettensuche informiert zu
 	 *            werden
 	 */
-	public static List<List<File>> getResult(final Collection<File> input, final DuplicateContentFinderCallback callback) {
+	public static Stream<List<File>> getResult(final Collection<File> input, final DuplicateContentFinderCallback callback) {
 		if (input == null) {
 			throw new IllegalArgumentException("input may not be null.");
 		}
@@ -98,6 +97,6 @@ public class DuplicateContentFinder {
 			throw new IllegalArgumentException("callback may not be null.");
 		}
 
-		return streamDuplicateFilesList(FileReader.pack(input), callback).collect(toList());
+		return streamDuplicateFilesList(FileReader.pack(input), callback);
 	}
 }

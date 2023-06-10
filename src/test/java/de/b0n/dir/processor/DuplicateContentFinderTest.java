@@ -2,6 +2,7 @@ package de.b0n.dir.processor;
 
 import static java.util.Collections.emptyList;
 import static org.junit.jupiter.api.Assertions.*;
+import static java.util.List.of;
 
 import java.io.File;
 import java.io.Serial;
@@ -84,7 +85,6 @@ public class DuplicateContentFinderTest {
 	public void scanFailingInputWithCallback() {
 		List<File> failFiles = new ArrayList<>();
 		DuplicateContentFinderCallback callback = new FailingDuplicateContentFinderCallback() {
-
 			@Override
 			public void failedFile(File failedFile) {
 				failFiles.add(failedFile);
@@ -99,7 +99,11 @@ public class DuplicateContentFinderTest {
 			}
 		};
 
-		List<List<File>> duplicateFilesLists = DuplicateContentFinder.getResult(List.of(file, new File(PATH_FILE_1B), new File(PATH_FILE_1B)), callback);
+		final List<List<File>> duplicateFilesLists = DuplicateContentFinder.getResult(of(
+					file,
+					new File(PATH_FILE_1B),
+					new File(PATH_FILE_1B)),
+				callback).toList();
 		assertEquals(1, failFiles.size());
 		assertEquals(1, duplicateFilesLists.size());
 		assertEquals(2, duplicateFilesLists.get(0).size());
@@ -107,15 +111,17 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanSingleInput() {
-		final List<List<File>> output = DuplicateContentFinder.getResult(List.of(new File(PATH_FILE_1A)));
+		final List<List<File>> output = DuplicateContentFinder.getResult(of(
+				new File(PATH_FILE_1A))).toList();
 		assertNotNull(output);
 		assertTrue(output.isEmpty());
 	}
 
 	@Test
 	public void scanSingleDuplicateInput() {
-		final List<List<File>> output = DuplicateContentFinder.getResult(List.of(new File(PATH_FILE_1A), new File(PATH_FILE_1B)));
-		assertNotNull(output);
+		final List<List<File>> output = DuplicateContentFinder.getResult(of(
+				new File(PATH_FILE_1A),
+				new File(PATH_FILE_1B))).toList();
 		assertEquals(1, output.size());
 		assertEquals(2, output.get(0).size());
 		assertTrue(output.get(0).get(0).getAbsolutePath().endsWith("Test1.txt"));
@@ -123,12 +129,11 @@ public class DuplicateContentFinderTest {
 
 	@Test
 	public void scanDoubleDuplicateInput() {
-		final List<File> input = List.of(
+		final List<List<File>> output = DuplicateContentFinder.getResult(of(
 				new File(PATH_FILE_1A),
 				new File(PATH_FILE_2A),
 				new File(PATH_FILE_2B),
-				new File(PATH_FILE_1B));
-		final List<List<File>> output = DuplicateContentFinder.getResult(input);
+				new File(PATH_FILE_1B))).toList();
 		assertNotNull(output);
 		assertEquals(2, output.size());
 		Iterator<List<File>> iter = output.iterator();
