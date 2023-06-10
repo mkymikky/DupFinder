@@ -52,6 +52,7 @@ class DupFinderConsole {
 
 		System.out.println("Begin finding duplicates: " + timeInstance.format(new Date()));
 		System.out.println("Duplicate size: " + cluster.values().parallelStream()
+				.filter(list -> list.size() != 1)
 				.flatMap(DuplicateContentFinder::getResult)
 				.mapToLong(files -> (files.size() - 1) * files.get(0).length())
 				.sum());

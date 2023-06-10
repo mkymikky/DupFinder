@@ -13,6 +13,13 @@ import static java.util.stream.Collectors.groupingByConcurrent;
 public class DuplicateContentFinder {
 
 	private static Stream<List<File>> streamDuplicateFilesList(List<FileReader> pack, DuplicateContentFinderCallback callback) {
+		if (pack.size() == 1) {
+			return Stream.of(
+					pack.stream()
+						.map(FileReader::clear)
+						.toList());
+		}
+
 		Map<Integer, List<FileReader>> dubletteCandidates = Map.of(0, pack);
 		while (dubletteCandidates.size() == 1
 				&& !dubletteCandidates.containsKey(FileReader.FINISHED)
