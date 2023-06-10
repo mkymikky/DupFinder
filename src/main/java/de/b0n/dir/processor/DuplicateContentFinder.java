@@ -23,10 +23,9 @@ public class DuplicateContentFinder {
 		Map<Integer, List<FileReader>> dubletteCandidates = Map.of(0, pack);
 		while (dubletteCandidates.size() == 1
 				&& !dubletteCandidates.containsKey(FileReader.FINISHED)
-				&& !dubletteCandidates.containsKey(FileReader.FAILING)
-				&& dubletteCandidates.values().iterator().next().size() > 1) {
-			dubletteCandidates = dubletteCandidates.values().iterator().next()
-					.parallelStream()
+				&& !dubletteCandidates.containsKey(FileReader.FAILING)) {
+			dubletteCandidates = dubletteCandidates.values().parallelStream()
+					.flatMap(List::parallelStream)
 					.collect(groupingByConcurrent(FileReader::read));
 		}
 
